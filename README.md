@@ -15,13 +15,13 @@ Provide property suggestions based on user search history.
 
 </p>
 <H4>2.Technology</H4>
-<pre>Programming language: Dart , python
-Framework:Flutter
-Database: Firebase
-Project Managment: Jira
-Web hosting: Github
-UX/UI: Figma
-Web-Based environment: JupyterLab</pre>
+<p>Programming language: Dart , python<br>
+Framework:Flutter<br>
+Database: Firebase<br>
+Project Managment: Jira<br>
+Web hosting: Github<br>
+UX/UI: Figma<br>
+Web-Based environment: JupyterLab</p>
 <H4>3.Lanunching instruction</H4>
 <p>TBD</p>
  
