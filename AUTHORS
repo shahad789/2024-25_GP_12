@@ -4,3 +4,32 @@
 | Sarah Alarifi    | 443200712|Wejdan Alkaldi   |
 | Shooq Aldowssari | 443200601|Wejdan Alkaldi   |
 | Shahad Alhaddad  | 443203031|Wejdan Alkaldi   |
+<table border="1" cellpadding="5" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Student Name</th>
+      <th>Student ID</th>
+      <th>Supervisor Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>John Doe</td>
+      <td>12345</td>
+      <td rowspan="4">Dr. Alex Johnson</td>
+    </tr>
+    <tr>
+      <td>Jane Smith</td>
+      <td>23456</td>
+    </tr>
+    <tr>
+      <td>Michael Brown</td>
+      <td>34567</td>
+    </tr>
+    <tr>
+      <td>Emily White</td>
+      <td>45678</td>
+    </tr>
+  </tbody>
+</table>
+gf
