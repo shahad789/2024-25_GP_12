@@ -1,8 +1,8 @@
 # 2024-25_GP_12
 <h2>Daar</h2>
 <H4>1.Introduction</H4>
-<pre>Daar is an AI-driven mobile application designed to solve the challenges of property valuation in Saudi Arabia's real estate market. Traditional methods of property valuation often lead to inaccurate pricing, impacting bank mortgages, property owners, and buyers. By leveraging machine learning, Daar provides highly accurate property value predictions, streamlining the process for all stakeholders.
-
+<p>Daar is an AI-driven mobile application designed to solve the challenges of property valuation in Saudi Arabia's real estate market. Traditional methods of property valuation often lead to inaccurate pricing, impacting bank mortgages, property owners, and buyers. By leveraging machine learning, Daar provides highly accurate property value predictions, streamlining the process for all stakeholders.</p>
+<pre>
 Goals
 Predict property values using an AI-trained model.
 Retrieve and view properties based on user-selected locations and features.
