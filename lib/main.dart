@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'screens/Login.dart';
 import 'screens/Register.dart';
-import 'screens/reset.dart'; // Import ResetPassword screen from screens folder
-import 'screens/WelcomeScreen.dart'; // Import WelcomeScreen from screens folder
-import 'screens/home_screen.dart'; // Import HomeScreen from screens folder
+import 'screens/reset.dart';
+import 'screens/WelcomeScreen.dart';
+import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
