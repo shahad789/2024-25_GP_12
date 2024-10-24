@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "916519282950",
+    "project_id": "daar-4ee4f",
+    "storage_bucket": "daar-4ee4f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:916519282950:android:6f72e5d185da4762935687",
+        "android_client_info": {
+          "package_name": "com.example.daar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBa63ld-U0w6GYuOD5ARyDo4Itb5HFi7E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

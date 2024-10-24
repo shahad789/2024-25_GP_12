@@ -1,0 +1,63 @@
+name: daar
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  intl: ^0.18.0  
+  dots_indicator: ^2.0.0
+  cupertino_icons: ^1.0.8
+  url_launcher: ^6.0.20
+  google_maps_flutter: ^2.1.2
+  image_picker: ^1.1.2
+  firebase_core: ^3.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # images here 
+  assets:
+    - lib/assets/images/apart.png
+    - lib/assets/images/apart2.png
+    - lib/assets/images/vill.png
+    - lib/assets/images/vill2.png
+    - lib/assets/images/logo.png
+    - lib/assets/images/apart3.png
+    - lib/assets/images/apart4.png
+    - lib/assets/images/vill3.png
+    - lib/assets/images/vill4.png
+    - lib/assets/images/vill6.png
+    - lib/assets/images/apart5.png
+    - lib/assets/images/vill7.png
+    - lib/assets/images/logow.png
+    - lib/assets/images/map.png
+    - assets/images/Logo.png
+    - assets/images/apart.png
+    - assets/images/apart2.png
+    - assets/images/vill.png
+    - assets/images/vill2.png
+    - assets/images/apart3.png
+    - assets/images/apart4.png
+    - assets/images/vill3.png
+    - assets/images/vill4.png
+    - assets/images/vill6.png
+    - assets/images/apart5.png
+    - assets/images/vill7.png
+    - assets/images/logow.png
+    - lib/assets/images/start.png
+    - assets/images/x.jpg
+
