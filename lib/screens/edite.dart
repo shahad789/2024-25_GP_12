@@ -362,8 +362,8 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         });
       },
       child: Container(
-        width: 140, // تعيين عرض أكبر
-        height: 50, // تعيين ارتفاع ثابت
+        width: 60, // تعيين عرض أكبر
+        height: 70, // تعيين ارتفاع ثابت
         padding: const EdgeInsets.all(8.0), // إضافة حشوة داخلية
         decoration: BoxDecoration(
           color: (label == 'شقة' && selectedPropertyType == label)
@@ -374,8 +374,12 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 8), // مساحة بين الأيقونة والنص
+            Icon(
+              icon,
+              color: Colors.white,
+              size: 17,
+            ),
+            const SizedBox(width: 5), // مساحة بين الأيقونة والنص
             Text(
               label,
               style: TextStyle(
