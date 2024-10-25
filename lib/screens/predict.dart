@@ -1,3 +1,5 @@
+// ignore_for_file: camel_case_types
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'home_screen.dart'; // تأكد من استيراد صفحة home_screen.dart
@@ -32,6 +34,7 @@ class PropertyDetailsPage extends StatefulWidget {
   createState() => _PropertyDetailsPageState();
 }
 
+//اضافة المدينه والحي
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   String? selectedCity;
   String? selectedNeighborhood;
@@ -45,41 +48,32 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   ];
 
   final List<String> neighborhoods = ['حي 1', 'حي 2', 'حي 3'];
-
+//تقدير العقار
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         elevation: 0.0,
         backgroundColor: const Color(0xFF180A44),
         toolbarHeight: 70.0,
-        flexibleSpace: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            const SizedBox(width: 8),
-            const Expanded(
-              child: Center(
-                child: Text(
-                  'تقدير العقار',
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                ),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward,
-                  color: Colors.white), // السهم لليمين
-              onPressed: () {
-                // الانتقال إلى الصفحة الرئيسية (home_screen.dart)
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          const HomeScreen()), // العودة إلى الصفحة الرئيسية
-                  (Route<dynamic> route) => false,
-                );
-              },
-            ),
-          ],
+        title: const Text(
+          '  تقدير العقار',
+          style: TextStyle(color: Colors.white, fontSize: 20),
         ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.arrow_forward, color: Colors.white),
+            onPressed: () {
+              // العودة إلى الصفحة الرئيسية
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -94,6 +88,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 topRight: Radius.circular(40.0),
               ),
             ),
+            //مساحة الارض-عدد الغرف-عدد دورات المياه-المدينه- الحي
             padding:
                 const EdgeInsets.symmetric(horizontal: 18.0, vertical: 30.0),
             child: Column(
@@ -120,7 +115,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 const SizedBox(height: 30),
                 _buildHelpBox(),
                 const SizedBox(height: 30),
-                _buildGrayBox(),
+                _buildCurrencyInput(),
                 const SizedBox(height: 30),
               ],
             ),
@@ -130,6 +125,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+//تقدير عقارك
   Widget _buildHelpBox() {
     return Container(
       padding: const EdgeInsets.all(12.0),
@@ -138,10 +134,11 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: const Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment:
+            MainAxisAlignment.center, // تغيير المحاذاة إلى المركز
         children: [
           Text(
-            '  تقدير عقارك',
+            'تقدير عقارك',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           SizedBox(width: 8),
@@ -151,15 +148,78 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  Widget _buildGrayBox() {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.9,
-      height: 150.0,
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: const SizedBox.shrink(),
+//صندوق قيمة التقدير التي ستظهر
+  Widget _buildCurrencyInput() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: const Color(0xFF180A44),
+              width: 3,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: SizedBox(
+            width: 130,
+            height: 33,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 13),
+                  child: const Text(
+                    'ر.س',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color.fromARGB(255, 0, 0, 0),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    textAlign: TextAlign.left,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '',
+                    ),
+                    onSubmitted: (value) {
+                      // يمكنك إضافة أي منطق هنا عند إدخال القيمة
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(top: 7),
+          child: const Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'بناء على العقارات المشابهة\n',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color.fromARGB(255, 0, 0, 0),
+                  ),
+                ),
+                TextSpan(
+                  text: ':قيمة عقارك سوف تكون في حدود',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color.fromARGB(255, 0, 0, 0),
+                  ),
+                ),
+              ],
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
     );
   }
 
@@ -193,6 +253,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+//قائمه منسدله لاختيار العنصر
   Widget _buildDropdownField(
       String label, List<String> items, ValueChanged<String?> onChanged) {
     return Row(

@@ -37,6 +37,7 @@ class PropertyDetailsPage extends StatefulWidget {
   createState() => _PropertyDetailsPageState();
 }
 
+//اختيار المدينه- حي-المنطقه -الاتجاهات
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   String? selectedCity;
   String? selectedNeighborhood;
@@ -94,12 +95,13 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     }
   }
 
+// الواجهه تحتوي  على الاتجاهات شرق- غرب- جنوب-شمال
   Widget _buildDirectionsDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         const Padding(
-          padding: EdgeInsets.only(left: 400.0),
+          padding: EdgeInsets.only(left: 280.0),
           child: Row(
             children: [
               Text(
@@ -144,6 +146,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+//تفاصيل العقار
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,6 +185,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 topRight: Radius.circular(40.0),
               ),
             ),
+            //المعلومات الظاهره في الفورم
             padding:
                 const EdgeInsets.symmetric(horizontal: 18.0, vertical: 30.0),
             child: Column(
@@ -202,7 +206,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 const SizedBox(height: 30),
                 _buildYearBuiltField(context),
                 const SizedBox(height: 30),
-                _buildLocationLinkField(),
                 const SizedBox(height: 30),
                 _buildDropdownField('المنطقة', regions, (value) {
                   setState(() {
@@ -232,8 +235,96 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 const SizedBox(height: 30),
                 _buildHelpAndPriceRow(context),
                 const SizedBox(height: 30),
-                _buildPredictionResultBox(),
-                const SizedBox(height: 30),
+                // الجملة النصية الجديدة قبل زر الإضافة
+                Row(
+                  mainAxisAlignment: MainAxisAlignment
+                      .spaceBetween, // توزيع العناصر بين الجانبين
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color(0xFF180A44),
+                          width: 3, // سمك الحواف
+                        ),
+                        borderRadius:
+                            BorderRadius.circular(10), // جعل الحواف مربعة
+                      ),
+                      child: SizedBox(
+                        width: 130, // تقليل الحجم
+                        height: 33, // تقليل الحجم
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment
+                              .start, // محاذاة المحتوى إلى اليسار
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(
+                                  top:
+                                      13), // تعديل المسافة بين النص وحقل الإدخال
+                              child: const Text(
+                                'ر.س', // النص الذي تريد إضافته
+                                style: TextStyle(
+                                  fontSize: 13, // حجم الخط
+                                  color: Color.fromARGB(
+                                      255, 0, 0, 0), // تغيير اللون حسب الحاجة
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                                width: 10), // مسافة صغيرة بين "ر.س" و TextField
+                            Expanded(
+                              child: TextField(
+                                textAlign: TextAlign
+                                    .left, // محاذاة النص داخل الحقل إلى اليسار
+                                decoration: const InputDecoration(
+                                  border:
+                                      InputBorder.none, // إزالة الحدود الداخلية
+                                  hintText: '', // نص تلميحي
+                                ),
+                                onSubmitted: (value) {
+                                  // يمكنك إضافة أي منطق هنا عند إدخال القيمة
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // نص "بناء على العقارات المشابهة"
+                    Container(
+                      margin: const EdgeInsets.only(
+                          top: 7), // تعديل المسافة للأعلى أو الأسفل
+                      child: const Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text:
+                                  'بناء على العقارات المشابهة\n', // إضافة سطر جديد
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color.fromARGB(255, 0, 0, 0),
+                              ),
+                            ),
+                            TextSpan(
+                              text: ':قيمة عقارك سوف تكون في حدود',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color.fromARGB(255, 0, 0, 0),
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 30), // مسافة بين العناصر
+
+// تحريك زر الإضافة للأسفل
+                const SizedBox(height: 20), // زيادة المسافة قبل الزر
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -241,7 +332,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                       child: ElevatedButton(
                         onPressed: () {
                           // إضافة وظيفة إضافة العقار
-                          // بعد إضافة العقار، العودة إلى الصفحة الرئيسية
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -260,6 +350,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 30),
               ],
             ),
@@ -269,6 +360,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+//سنة البناء
   Widget _buildYearBuiltField(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -298,6 +390,10 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+// المتغير لتخزين نوع العقار المحدد
+  String? selectedPropertyType; // يبدأ بدون تحديد
+
+// دالة لبناء واجهة اختيار نوع العقار
   Widget _buildPropertyType() {
     return Column(
       children: [
@@ -339,16 +435,46 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+// دالة لإنشاء زر نوع العقار
   Widget _buildPropertyTypeButton(String label, IconData icon) {
-    return TextButton.icon(
-      onPressed: () {
-        // يمكنك إضافة منطق هنا لتحديد نوع العقار
+    bool isSelected = selectedPropertyType == label; // تحقق إذا كان الزر محددًا
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          // تحديث الحالة عند الضغط
+          selectedPropertyType = label; // تعيين النوع المحدد
+        });
       },
-      icon: Icon(icon, color: Colors.white),
-      label: Text(label, style: const TextStyle(color: Colors.white)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Colors.grey
+              : Colors.transparent, // تغيير لون الخلفية عند التحديد
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Row(
+          children: [
+            Icon(icon,
+                color: isSelected
+                    ? Colors.black
+                    : Colors.white), // لون الأيقونة عند التحديد
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.black
+                    : Colors.white, // لون النص عند التحديد
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
+// دالة لإنشاء فاصل عمودي (Divider)
   Widget _buildVerticalDivider() {
     return const VerticalDivider(
       color: Colors.white,
@@ -357,6 +483,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+//التقدير (هل تحتاج مساعده للتقييم )
   Widget _buildHelpBox() {
     return Container(
       padding: const EdgeInsets.all(12.0),
@@ -373,24 +500,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           SizedBox(width: 8),
           Icon(Icons.lightbulb, color: Colors.yellow),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPredictionResultBox() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16.0),
-      height: 100,
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: const Center(
-        child: Text(
-          '   ',
-          style: TextStyle(fontSize: 16, color: Colors.black),
-        ),
       ),
     );
   }
@@ -472,6 +581,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+//عرض الشارع
   Widget _buildStreetWidthField() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -501,33 +611,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  Widget _buildLocationLinkField() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        const Icon(Icons.link, color: Color(0xFF180A44)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TextField(
-            controller: locationLinkController,
-            textAlign: TextAlign.right,
-            textDirection: TextDirection.rtl,
-            decoration: const InputDecoration(
-              label: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text('رابط الموقع',
-                      style: TextStyle(
-                          color: Colors.grey, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
+//ارفاق صوره
   Widget _buildImagePicker() {
     return Row(
       children: [
@@ -625,6 +709,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+//السعر
   Widget _buildHelpAndPriceRow(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
