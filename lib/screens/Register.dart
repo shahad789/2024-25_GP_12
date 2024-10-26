@@ -1,7 +1,5 @@
-// ignore: file_names
-// ignore_for_file: file_names, duplicate_ignore, use_super_parameters, library_private_types_in_public_api, prefer_const_constructors
-
 import 'package:flutter/material.dart';
+import 'package:daar/screens/authentication.dart';
 
 class RegScreen extends StatefulWidget {
   const RegScreen({Key? key}) : super(key: key);
@@ -15,15 +13,57 @@ class _RegScreenState extends State<RegScreen> {
   DateTime? selectedDate;
 
   final List<String> genders = ['ذكر', 'أنثى']; // "Male", "Female" in Arabic
+  final fullNameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  final auth = Authentication();
+
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+  String _emailError = '';
+  String _passwordError = '';
+
+  @override
+  void dispose() {
+    fullNameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  bool _validateEmail(String email) {
+    String pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+    return RegExp(pattern).hasMatch(email);
+  }
+
+  bool _validatePassword(String password) {
+    bool hasUppercase = password.contains(RegExp(r'[A-Z]'));
+    bool hasLowercase = password.contains(RegExp(r'[a-z]'));
+    bool hasDigits = password.contains(RegExp(r'[0-9]'));
+    bool hasMinLength = password.length >= 8;
+    return hasUppercase && hasLowercase && hasDigits && hasMinLength;
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    final snackBar = SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+      duration: const Duration(seconds: 3),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Directionality(
-        textDirection: TextDirection.rtl, // Set the entire screen to RTL
+        textDirection: TextDirection.rtl,
         child: Stack(
           children: [
-            // Background gradient container
             Container(
               height: double.infinity,
               width: double.infinity,
@@ -38,17 +78,15 @@ class _RegScreenState extends State<RegScreen> {
                 ),
               ),
             ),
-            // Positioned Logo on the right side
             Positioned(
-              top: 50, // Adjust position according to your layout
-              right: 20, // Align the logo to the right
+              top: 50,
+              right: 20,
               child: Image.asset(
                 'lib/assets/images/logow.png', // Path to your logo file
-                width: 90, // Adjust logo size as needed
+                width: 90,
                 height: 90,
               ),
             ),
-            // Registration form container
             Padding(
               padding: const EdgeInsets.only(top: 200.0),
               child: SingleChildScrollView(
@@ -63,45 +101,37 @@ class _RegScreenState extends State<RegScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        // Welcome Text inside the white container
                         const Padding(
-                          padding: EdgeInsets.only(
-                            top: 20.0,
-                            right: 0.0,
-                            bottom: 20.0,
-                          ), // Set right padding to 0
+                          padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: Text(
-                              'أنشئ حسابك', // "Create your account" in Arabic
+                              'أنشئ حسابك',
                               style: TextStyle(
                                 fontSize: 30,
                                 color: Color(0xff180A44),
                                 fontWeight: FontWeight.bold,
                               ),
-                              textAlign:
-                                  TextAlign.right, // Align text to the right
-                              maxLines: 2, // Allow up to 2 lines
-                              overflow: TextOverflow
-                                  .visible, // Ensure text is visible
+                              textAlign: TextAlign.right,
+                              maxLines: 2,
                             ),
                           ),
                         ),
                         const SizedBox(height: 20),
 
                         // Full Name TextField
-                        const TextField(
-                          textAlign: TextAlign.right, // Align text to the right
+                        TextField(
+                          controller: fullNameController,
+                          textAlign: TextAlign.right,
                           decoration: InputDecoration(
                             suffixIcon: Icon(
                               Icons.check,
                               color: Colors.grey,
                             ),
-                            label: Text(
-                              'الاسم الكامل', // "Full Name" in Arabic
+                            label: const Text(
+                              'الاسم الكامل',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xff180A44),
@@ -109,38 +139,58 @@ class _RegScreenState extends State<RegScreen> {
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 15),
 
-                        // Email TextField
-                        const TextField(
-                          textAlign: TextAlign.right, // Align text to the right
+                        // Email TextField with real-time validation
+                        TextField(
+                          controller: emailController,
+                          textAlign: TextAlign.right,
+                          keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             suffixIcon: Icon(
                               Icons.email,
                               color: Colors.grey,
                             ),
-                            label: Text(
-                              'البريد الإلكتروني', // "Email" in Arabic
+                            label: const Text(
+                              'البريد الإلكتروني',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xff180A44),
                               ),
                             ),
+                            errorText: _emailError.isNotEmpty
+                                ? 'البريد الإلكتروني غير صحيح, مثال: name@example.com' // Show the example when there's an error
+                                : null,
+                            helperText: null, // Remove the helper text
+                            helperStyle: const TextStyle(
+                                color: Colors
+                                    .red), // You can keep this for styling, but since helperText is null, this won't show.
                           ),
+                          onChanged: (value) {
+                            setState(() {
+                              // Validate the email syntax
+                              _emailError = _validateEmail(value)
+                                  ? ''
+                                  : 'البريد الإلكتروني غير صحيح'; // Keep the original error message
+                            });
+                          },
                         ),
+
                         const SizedBox(height: 15),
 
                         // Phone Number TextField
-                        const TextField(
-                          textAlign: TextAlign.right, // Align text to the right
+                        TextField(
+                          controller: phoneController,
+                          textAlign: TextAlign.right,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
                             suffixIcon: Icon(
                               Icons.phone,
                               color: Colors.grey,
                             ),
-                            label: Text(
-                              'رقم الهاتف', // "Phone Number" in Arabic
+                            label: const Text(
+                              'رقم الهاتف',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xff180A44),
@@ -148,48 +198,10 @@ class _RegScreenState extends State<RegScreen> {
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 15),
 
-                        // Gender Dropdown without border
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            DropdownButtonFormField<String>(
-                              value: selectedGender,
-                              hint: const Text(
-                                'اختر الجنس', // "Select Gender" in Arabic
-                                style: TextStyle(
-                                  color: Color(0xff180A44),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              items: genders
-                                  .map((gender) => DropdownMenuItem(
-                                        value: gender,
-                                        child: Text(gender),
-                                      ))
-                                  .toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedGender = value;
-                                });
-                              },
-                              decoration: InputDecoration(
-                                border: InputBorder.none, // Remove the border
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Container(
-                              height: 1,
-                              width: double.infinity,
-                              color:
-                                  const Color(0xff180A44), // Color of the line
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-
-                        // Date of Birth TextField
+                        // Date of Birth Field
                         GestureDetector(
                           onTap: () async {
                             DateTime? date = await showDatePicker(
@@ -212,33 +224,84 @@ class _RegScreenState extends State<RegScreen> {
                                   Icons.calendar_today,
                                   color: Colors.grey,
                                 ),
-                                label: Text(
-                                  selectedDate != null
-                                      ? 'تاريخ الميلاد: ${selectedDate!.toLocal()}'
-                                          .split(' ')[0]
-                                      : 'تاريخ الميلاد', // "Date of Birth" in Arabic
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xff180A44),
-                                  ),
+                                hintText: selectedDate != null
+                                    ? '${selectedDate!.toLocal()}'.split(' ')[
+                                        0] // Display selected date in format 'YYYY-MM-DD'
+                                    : 'تاريخ الميلاد', // "Date of Birth" placeholder in Arabic
+                                hintStyle: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
                                 ),
                               ),
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 15),
 
-                        // Password TextField
-                        const TextField(
-                          obscureText: true,
-                          textAlign: TextAlign.right, // Align text to the right
+                        // Password TextField with validation and visibility toggle
+                        TextField(
+                          controller: passwordController,
+                          obscureText: !_isPasswordVisible,
+                          textAlign: TextAlign.right,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(
-                              Icons.visibility_off,
-                              color: Colors.grey,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
                             ),
-                            label: Text(
-                              'كلمة المرور', // "Password" in Arabic
+                            label: const Text(
+                              'كلمة المرور',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xff180A44),
+                              ),
+                            ),
+                            errorText: _passwordError.isNotEmpty
+                                ? _passwordError
+                                : null,
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _passwordError = _validatePassword(value)
+                                  ? ''
+                                  : 'يجب أن تحتوي كلمة المرور على أحرف كبيرة وصغيرة وأرقام وألا تقل عن 8 أحرف'; // Password requirements in Arabic
+                            });
+                          },
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        // Confirm Password TextField with visibility toggle
+                        TextField(
+                          controller: confirmPasswordController,
+                          obscureText: !_isConfirmPasswordVisible,
+                          textAlign: TextAlign.right,
+                          decoration: InputDecoration(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isConfirmPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isConfirmPasswordVisible =
+                                      !_isConfirmPasswordVisible;
+                                });
+                              },
+                            ),
+                            label: const Text(
+                              'تأكيد كلمة المرور',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xff180A44),
@@ -246,33 +309,20 @@ class _RegScreenState extends State<RegScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 15),
 
-                        // Confirm Password TextField
-                        const TextField(
-                          obscureText: true,
-                          textAlign: TextAlign.right, // Align text to the right
-                          decoration: InputDecoration(
-                            suffixIcon: Icon(
-                              Icons.visibility_off,
-                              color: Colors.grey,
-                            ),
-                            label: Text(
-                              'تأكيد كلمة المرور', // "Confirm Password" in Arabic
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
-                          ),
-                        ),
                         const SizedBox(height: 40),
 
                         // Sign Up Button
                         GestureDetector(
                           onTap: () {
-                            // Navigate to the home screen
-                            Navigator.pushNamed(context, 'home');
+                            if (_validateEmail(emailController.text) &&
+                                _validatePassword(passwordController.text)) {
+                              signup();
+                            } else {
+                              String errorMsg =
+                                  'تحقق من صحة البريد الإلكتروني وكلمة المرور'; // "Check the email and password validity"
+                              _showSnackBar(context, errorMsg);
+                            }
                           },
                           child: Container(
                             height: 55,
@@ -286,18 +336,17 @@ class _RegScreenState extends State<RegScreen> {
                             ),
                             child: const Center(
                               child: Text(
-                                'إنشاء حساب', // "Sign Up" in Arabic
+                                'إنشاء حساب',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 20,
                                   color: Colors.white,
                                 ),
-                                textAlign:
-                                    TextAlign.center, // Center the button text
                               ),
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 20),
 
                         // Login prompt
@@ -307,7 +356,7 @@ class _RegScreenState extends State<RegScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               const Text(
-                                "هل لديك حساب؟", // "Do you have an account?" in Arabic
+                                "هل لديك حساب؟",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey,
@@ -318,7 +367,7 @@ class _RegScreenState extends State<RegScreen> {
                                   Navigator.pushNamed(context, 'login');
                                 },
                                 child: const Text(
-                                  'تسجيل الدخول', // "Login" in Arabic
+                                  'تسجيل الدخول',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xff180A44),
@@ -328,6 +377,7 @@ class _RegScreenState extends State<RegScreen> {
                             ],
                           ),
                         ),
+
                         const SizedBox(height: 30), // Space for bottom padding
                       ],
                     ),
@@ -339,5 +389,18 @@ class _RegScreenState extends State<RegScreen> {
         ),
       ),
     );
+  }
+
+  goToHome(BuildContext context) => Navigator.pushNamed(context, 'home');
+
+  signup() async {
+    if (_validateEmail(emailController.text) &&
+        _validatePassword(passwordController.text)) {
+      final user = await auth.creatUserWithEmailAndPassword(
+          emailController.text, passwordController.text);
+      if (user != null) {
+        goToHome(context);
+      }
+    }
   }
 }
