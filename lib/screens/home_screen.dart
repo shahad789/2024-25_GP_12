@@ -1,13 +1,13 @@
-import 'package:daar/models/item_model.dart';
 import 'package:daar/widgets/recomend_list.dart';
 import 'package:daar/widgets/search_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:daar/widgets/vertical_recomend_list.dart';
-import 'package:daar/screens/profile_page.dart'; // تأكد من استيراد صفحة الملف الشخصي
+import 'package:daar/screens/profile_page.dart';
 import 'package:daar/screens/Add1.dart';
 import 'package:daar/screens/predict.dart';
 import 'package:daar/screens/notif.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,40 +17,72 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0; // المتغير لتتبع الفهرس الحالي
+  int _currentIndex = 0;
+  List<Property> allProperties = [];
+  List<Property> recommendedProperties = []; // قائمة للتوصيات
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProperties();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
-      _currentIndex = index; // تحديث الفهرس الحالي
+      _currentIndex = index;
     });
 
-    // التحقق من الفهرس الحالي
     if (index == 3) {
-      // إذا كان الفهرس 3، انتقل إلى صفحة الملف الشخصي
       Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (context) => const ProfilePage()), // استبدل بـ ProfilePage
+        MaterialPageRoute(builder: (context) => const ProfilePage()),
       );
     }
 
     if (index == 2) {
-      // إذا كان الفهرس 3، انتقل إلى صفحة الملف الشخصي
       Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (context) => const MyApp()), // استبدل بـ ProfilePage
+        MaterialPageRoute(builder: (context) => const MyApp()),
       );
     }
 
     if (index == 1) {
-      // إذا كان الفهرس 3، انتقل إلى صفحة الملف الشخصي
       Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (context) => const predictpage()), // استبدل بـ ProfilePage
+        MaterialPageRoute(builder: (context) => const predictpage()),
       );
     }
+  }
+
+  Future<void> _fetchProperties() async {
+    // إحضار جميع العقارات
+    final propertySnapshot = await FirebaseFirestore.instance
+        .collection('Property')
+        .limit(100)
+        .get();
+
+    final properties = propertySnapshot.docs
+        .map((doc) => Property.fromFirestore(doc))
+        .toList();
+
+    setState(() {
+      allProperties = properties;
+    });
+
+    // إحضار آخر 5 عقارات لإضافتها في قائمة التوصيات
+    final recentPropertiesSnapshot = await FirebaseFirestore.instance
+        .collection('Property')
+        .orderBy('Date_list', descending: true) // ترتيب حسب تاريخ الإضافة
+        .limit(5) // جلب آخر 5 عقارات
+        .get();
+
+    final recentProperties = recentPropertiesSnapshot.docs
+        .map((doc) => Property.fromFirestore(doc))
+        .toList();
+
+    setState(() {
+      recommendedProperties = recentProperties; // حفظ آخر 5 عقارات
+    });
   }
 
   @override
@@ -66,12 +98,9 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             IconButton(
               onPressed: () {
-                // الانتقال إلى صفحة notif
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          const NotifPage()), // التأكد من استخدام اسم الصفحة الصحيح
+                  MaterialPageRoute(builder: (context) => const NotifPage()),
                 );
               },
               icon: const Icon(
@@ -114,9 +143,10 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 10.0),
               const SearchField(),
               const SizedBox(height: 20.0),
-              recomendList("التوصيات", Item.recomend),
+              recomendList(
+                  "التوصيات", recommendedProperties), // استخدام قائمة التوصيات
               const SizedBox(height: 40.0),
-              VerticalRecomendList("العقارات", Item.normal),
+              VerticalRecomendList("العقارات", allProperties),
             ],
           ),
         ),
@@ -126,8 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         selectedItemColor: const Color(0xFF180A44),
         unselectedItemColor: Colors.grey.shade600,
-        currentIndex: _currentIndex, // استخدم الفهرس الحالي
-        onTap: _onItemTapped, // استدعاء الدالة عند الضغط على أي عنصر
+        currentIndex: _currentIndex,
+        onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.home), label: "الصفحة الرئيسية"),
@@ -138,6 +168,52 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icon(CupertinoIcons.person), label: "الحساب الشخصي"),
         ],
       ),
+    );
+  }
+}
+
+class Property {
+  final String id;
+  final List<String> images;
+  final String category;
+  final String District;
+  final String city;
+  final double price;
+  final int size;
+  final int numofbath;
+  final int numoflivin;
+  final int numofbed;
+  final Timestamp Date_list; // حقل لتاريخ الإضافة
+
+  Property({
+    required this.id,
+    required this.images,
+    required this.category,
+    required this.District,
+    required this.city,
+    required this.price,
+    required this.size,
+    required this.numofbath,
+    required this.numoflivin,
+    required this.numofbed,
+    required this.Date_list,
+  });
+
+  factory Property.fromFirestore(QueryDocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Property(
+      id: doc.id,
+      images: List<String>.from(data['images'] ?? []),
+      category: data['category'] ?? '',
+      District: data['District'] ?? '',
+      city: data['city'] ?? '',
+      price: (data['price'] as num?)?.toDouble() ?? 0.0,
+      size: data['size'] ?? 0,
+      numofbath: data['numOfBath'] ?? 0,
+      numoflivin: data['numOfLivin'] ?? 0,
+      numofbed: data['numOfBed'] ?? 0,
+      Date_list:
+          data['Date_list'] ?? Timestamp.now(), // قراءة التاريخ من Firestore
     );
   }
 }

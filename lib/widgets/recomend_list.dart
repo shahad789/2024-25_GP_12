@@ -1,8 +1,8 @@
 // ignore_for_file: camel_case_types, avoid_unnecessary_containers
 
-import 'package:daar/models/item_model.dart';
-import 'package:daar/widgets/house_card.dart';
 import 'package:flutter/material.dart';
+import 'package:daar/widgets/house-cardrec.dart';
+import 'package:daar/screens/home_screen.dart';
 import 'package:daar/screens/detailsafterclick.dart';
 
 /// Widget of recomend list box nafso
@@ -11,7 +11,7 @@ import 'package:daar/screens/detailsafterclick.dart';
 class recomendList extends StatefulWidget {
   recomendList(this.title, this.items, {super.key});
   String? title;
-  List<Item> items;
+  final List<Property> items;
 
   @override
   State<recomendList> createState() => _recomendListState();
@@ -44,16 +44,25 @@ class _recomendListState extends State<recomendList> {
             child: Directionality(
               textDirection: TextDirection.rtl,
               child: ListView.builder(
-                scrollDirection: Axis.horizontal,
+                scrollDirection: Axis.horizontal, // عرض العناصر بشكل أفقي
                 itemCount: widget.items.length,
-                itemBuilder: (context, index) =>
-                    ItemCard(widget.items[index], () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              DetailsBro(widget.items[index])));
-                }),
+                itemBuilder: (context, index) {
+                  return Row(
+                    children: [
+                      ItemCard(widget.items[index], () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            //  builder: (context) => DetailsBro(items[index]),
+                            builder: (context) =>
+                                DetailsBro(widget.items[index].id),
+                          ),
+                        );
+                      }),
+                      const SizedBox(width: 12.0), // مسافة بين العناصر
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -62,7 +71,6 @@ class _recomendListState extends State<recomendList> {
     );
   }
 }
-
               // Button on the left
               /* TextButton(
                 onPressed: () {},
@@ -73,4 +81,3 @@ class _recomendListState extends State<recomendList> {
                 ),
               ),*/
               // Title on the right
-              

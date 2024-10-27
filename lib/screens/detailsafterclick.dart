@@ -2,16 +2,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:dots_indicator/dots_indicator.dart';
-import 'package:daar/models/item_model.dart';
 import 'package:daar/widgets/detailssmall.dart';
 import 'package:daar/widgets/detailinfo.dart';
 import 'package:intl/intl.dart';
 import 'package:daar/screens/home_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DetailsBro extends StatefulWidget {
-  final Item item;
+  final String propertyId;
 
-  const DetailsBro(this.item, {super.key});
+  const DetailsBro(this.propertyId, {super.key});
 
   @override
   State<DetailsBro> createState() => _DetailsBroState();
@@ -20,6 +20,26 @@ class DetailsBro extends StatefulWidget {
 class _DetailsBroState extends State<DetailsBro> {
   int _currentImageIndex = 0;
   bool isLiked = false; // liked or no
+  Map<String, dynamic>? propertyData;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPropertyDetails();
+  }
+
+  void _fetchPropertyDetails() async {
+    final docSnapshot = await FirebaseFirestore.instance
+        .collection('Property')
+        .doc(widget.propertyId)
+        .get();
+
+    if (docSnapshot.exists) {
+      setState(() {
+        propertyData = docSnapshot.data();
+      });
+    }
+  }
 
   void _toggleLike() {
     setState(() {
@@ -29,10 +49,13 @@ class _DetailsBroState extends State<DetailsBro> {
 
   @override
   Widget build(BuildContext context) {
-    final priceFormatted =
-        NumberFormat('#,##0', 'en_US').format(widget.item.price);
-    return Scaffold(
-        ///////////////////bedaya////////////////////////////////////////////
+    // Only format price if propertyData is loaded
+    final priceFormatted = propertyData != null
+        ? NumberFormat('#,##0', 'en_US').format(propertyData!['price'])
+        : '';
+
+    if (propertyData == null) {
+      return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
           elevation: 0.0,
@@ -43,241 +66,259 @@ class _DetailsBroState extends State<DetailsBro> {
             style: TextStyle(color: Colors.white, fontSize: 20),
           ),
           centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.arrow_forward, color: Colors.white),
-              onPressed: () {
-                // العودة إلى الصفحة الرئيسية
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                );
-              },
-            ),
-          ],
         ),
-/////////////////////////////////////////////////////////////////25er
+        body: const Center(
+            child: CircularProgressIndicator()), // Loading indicator
+      );
+    }
 
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        elevation: 0.0,
         backgroundColor: const Color(0xFF180A44),
-        body: SingleChildScrollView(
-          child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(40.0),
-                topRight: Radius.circular(40.0),
-              ),
+        toolbarHeight: 70.0,
+        title: const Text(
+          '  تفاصيل',
+          style: TextStyle(color: Colors.white, fontSize: 20),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.arrow_forward, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+      backgroundColor: const Color(0xFF180A44),
+      body: SingleChildScrollView(
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(40.0),
+              topRight: Radius.circular(40.0),
             ),
-            padding: const EdgeInsets.only(top: 35.0),
-            // padding: const EdgeInsets.all(20.0),
-
-            //////////////////////////////////////////////////////////
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height *
-                      0.34, //check girls if u want bigger size
-                  child: Stack(
-                    children: [
-                      PageView.builder(
-                        itemCount: widget.item.imagePaths!.length, //toolha
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentImageIndex = index;
-                          });
-                        },
-                        itemBuilder: (context, index) {
-                          return Image.asset(
-                            widget.item.imagePaths![index],
-                            fit: BoxFit.cover,
-                            width: double.infinity, //23dad kteer
-                          );
-                        },
-                      ),
-                      Positioned(
-                        bottom: 10,
-                        left: MediaQuery.of(context).size.width / 2 -
-                            20, //makan dots
-                        child: DotsIndicator(
-                          dotsCount: widget.item.imagePaths!.length,
-                          position: _currentImageIndex.toDouble(),
-                          decorator: const DotsDecorator(
-                            activeColor: Color.fromARGB(210, 152, 151, 151),
-                            size: Size.square(8.0),
-                            activeSize: Size.square(12.0),
-                          ),
+          ),
+          padding: const EdgeInsets.only(top: 35.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Display property images
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.34,
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      itemCount: (propertyData!['images'] as List).length,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentImageIndex = index;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return Image.network(
+                          propertyData!['images'][index],
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        );
+                      },
+                    ),
+                    Positioned(
+                      bottom: 10,
+                      left: MediaQuery.of(context).size.width / 2 - 20,
+                      child: DotsIndicator(
+                        dotsCount: (propertyData!['images'] as List).length,
+                        position: _currentImageIndex.toDouble(),
+                        decorator: const DotsDecorator(
+                          activeColor: Color.fromARGB(210, 152, 151, 151),
+                          size: Size.square(8.0),
+                          activeSize: Size.square(12.0),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
+              const SizedBox(height: 16),
 
-                /////////////////////////////////////////////////end of pictures
-                const SizedBox(height: 16),
-                //infofoo2
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: _toggleLike, // Handle tap to toggle like status
-                        child: Icon(
-                          isLiked ? Icons.favorite : Icons.favorite_border,
-                          color: isLiked ? Colors.red : Colors.grey,
+              // Details section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: _toggleLike,
+                      child: Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        color: isLiked ? Colors.red : Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '${propertyData!['category']} في ${propertyData!['city']} في حي ${propertyData!['District']}',
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 13, 6, 37),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.right,
                         ),
                       ),
-                      const SizedBox(
-                          width: 8), // Space between the icon and text
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            '${widget.item.category} في ${widget.item.city} في حي ${widget.item.district}',
-                            style: const TextStyle(
-                              color: Color.fromARGB(255, 13, 6, 37),
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Info boxes
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: boxdetail(
+                              '  غرف النوم', '${propertyData!['numOfBed']}'),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: boxdetail(
+                              ' دورات المياه', '${propertyData!['numOfBath']}'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: boxdetail(
+                              ' غرف الجلوس', '${propertyData!['numOfLivin']}'),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: boxdetail(
+                              'المساحة', '${propertyData!['size']} م²'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: boxdetail(
+                              'الجهة', '${propertyData!['Direction']}'),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: boxdetail('عرض الشارع',
+                              '${propertyData!['streetWidth']} م'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: boxdetail(
+                            'تاريخ الاعلان',
+                            DateFormat('yyyy-MM-dd').format(
+                              (propertyData!['Date_list'] as Timestamp)
+                                  .toDate(),
                             ),
-                            textAlign: TextAlign.right,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: boxdetail(
+                              'سنة البناء', '${propertyData!['year']}'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-/////////////////////////////////////////////////////////////////end first
-/////////////////////////////////////////////////////////////////boxes w kalam jowa
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: boxdetail(
-                                '  غرف النوم', '${widget.item.numofbed}'),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: boxdetail(
-                                ' دورات المياه', '${widget.item.numofbath}'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: boxdetail(
-                                ' غرف الجلوس', '${widget.item.numoflivin}'),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child:
-                                boxdetail('المساحة', '${widget.item.size} م²'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: boxdetail('الجهة', '${widget.item.direct}'),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: boxdetail(
-                                'عرض الشارع', '${widget.item.street} م'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: boxdetail(
-                                'تاريخ الاعلان', '${widget.item.adDate}'),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child:
-                                boxdetail('سنة البناء', '${widget.item.year}'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+              ),
+              const SizedBox(height: 20),
 
-                const SizedBox(height: 20),
-///////////////////////////////////////////////////////////////////////////////////////////////////
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Text(
-                        'تفاصيل',
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color.fromARGB(255, 13, 6, 37),
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.right,
+              // Property Details
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment
+                      .end, // Aligns column content to the right
+                  children: [
+                    const Text(
+                      'تفاصيل',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Color.fromARGB(255, 13, 6, 37),
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        widget.item.details!,
+                      textAlign: TextAlign.right,
+                    ),
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment
+                          .centerRight, // Ensures text aligns to the right
+                      child: Text(
+                        propertyData!['details']!,
                         style: const TextStyle(
                           fontSize: 16,
                           color: Color.fromARGB(255, 13, 6, 37),
                         ),
                         textAlign: TextAlign.right,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-//////////////////////////////////////////////////////////////////////////////////////////tafaseel
-                const SizedBox(height: 20),
-                contactdet('طريقة التواصل', '${widget.item.contact}'),
+              ),
 
-//////////////////////////////////////////////////////////////////////////////////////////////////start of price
-                const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-                //price sheklo w atba3
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const Text(
-                        'ريال سعودي ',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 0, 0, 0),
-                        ),
+              // Contact Details
+              contactdet('طريقة التواصل', '${propertyData!['contact']}'),
+              const SizedBox(height: 20),
+
+              // Price Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'ريال سعودي ',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 0, 0, 0),
                       ),
-                      Text(
-                        '$priceFormatted  ',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22.0,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      priceFormatted,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22.0,
                       ),
-                    ],
-                  ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
-
-  //////////////////////////////////////////////////////
 }

@@ -41,7 +41,7 @@ class _ItemCardState extends State<ItemCard> {
                   borderRadius: BorderRadius.circular(8.0),
                   color: Colors.grey.shade200,
                   image: DecorationImage(
-                    image: NetworkImage(widget.item.images.first),
+                    image: NetworkImage(widget.item.images!.first),
                     fit: BoxFit.cover,
                   ),
                 ),

@@ -105,7 +105,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         const Padding(
-          padding: EdgeInsets.only(left: 380.0),
+          padding: EdgeInsets.only(left: 280.0),
           child: Row(
             children: [
               Text(
