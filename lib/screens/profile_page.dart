@@ -8,6 +8,7 @@ import 'package:daar/screens/WelcomeScreen.dart'; // استيراد صفحة Wel
 import 'package:daar/screens/Add1.dart';
 import 'package:daar/screens/predict.dart';
 import 'package:daar/screens/home_screen.dart'; // استيراد الصفحة الرئيسية
+import 'package:daar/screens/authentication.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -149,6 +150,7 @@ class ButtonSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = Authentication();
     return Column(
       children: [
         // زر عقاراتي
@@ -263,7 +265,13 @@ class ButtonSection extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              await auth.signout();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+              );
+
               // أضف هنا وظيفة تسجيل الخروج إذا لزم الأمر
             },
             style: ElevatedButton.styleFrom(
@@ -279,8 +287,9 @@ class ButtonSection extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.only(left: 210.0),
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
+                    onTap: () async {
+                      await auth.signout();
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => const WelcomeScreen()),

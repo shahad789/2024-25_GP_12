@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:daar/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:daar/screens/authentication.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegScreen extends StatefulWidget {
   const RegScreen({Key? key}) : super(key: key);
@@ -18,6 +21,8 @@ class _RegScreenState extends State<RegScreen> {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final DOBController = TextEditingController();
+  final genderController = TextEditingController();
   final auth = Authentication();
 
   bool _isPasswordVisible = false;
@@ -32,6 +37,8 @@ class _RegScreenState extends State<RegScreen> {
     phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    DOBController.dispose();
+    genderController.dispose();
     super.dispose();
   }
 
@@ -213,21 +220,25 @@ class _RegScreenState extends State<RegScreen> {
                             if (date != null) {
                               setState(() {
                                 selectedDate = date;
+                                DOBController
+                                    .text = '${selectedDate!.toLocal()}'
+                                        .split(' ')[
+                                    0]; // Display selected date in format 'YYYY-MM-DD'
                               });
                             }
                           },
                           child: AbsorbPointer(
                             child: TextField(
+                              controller:
+                                  DOBController, // Use the DOB controller here
                               textAlign: TextAlign.right,
                               decoration: InputDecoration(
                                 suffixIcon: const Icon(
                                   Icons.calendar_today,
                                   color: Colors.grey,
                                 ),
-                                hintText: selectedDate != null
-                                    ? '${selectedDate!.toLocal()}'.split(' ')[
-                                        0] // Display selected date in format 'YYYY-MM-DD'
-                                    : 'تاريخ الميلاد', // "Date of Birth" placeholder in Arabic
+                                hintText:
+                                    'تاريخ الميلاد', // "Date of Birth" placeholder in Arabic
                                 hintStyle: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xff180A44),
@@ -237,6 +248,47 @@ class _RegScreenState extends State<RegScreen> {
                           ),
                         ),
 
+                        const SizedBox(height: 5),
+// Gender Dropdown without border
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            DropdownButtonFormField<String>(
+                              value: selectedGender,
+                              hint: const Text(
+                                'اختر الجنس', // "Select Gender" in Arabic
+                                style: TextStyle(
+                                  color: Color(0xff180A44),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              items: genders
+                                  .map((gender) => DropdownMenuItem(
+                                        value: gender,
+                                        child: Text(gender),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedGender = value;
+                                  genderController.text = value ??
+                                      ''; // Update the controller with the selected value
+                                });
+                              },
+                              decoration: InputDecoration(
+                                border: InputBorder.none, // Remove the border
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            // Line below the dropdown
+                            Container(
+                              height: 1,
+                              width: double.infinity,
+                              color:
+                                  const Color(0xff180A44), // Color of the line
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 15),
 
                         // Password TextField with validation and visibility toggle
@@ -273,7 +325,7 @@ class _RegScreenState extends State<RegScreen> {
                             setState(() {
                               _passwordError = _validatePassword(value)
                                   ? ''
-                                  : 'يجب أن تحتوي كلمة المرور على أحرف كبيرة وصغيرة وأرقام وألا تقل عن 8 أحرف'; // Password requirements in Arabic
+                                  : 'يجب أن تكون كلمة المرور 8 أحرف على الأقل\n وتحتوي على حرف كبير وحرف صغير ورقم'; // Password requirements in Arabic
                             });
                           },
                         ),
@@ -314,16 +366,7 @@ class _RegScreenState extends State<RegScreen> {
 
                         // Sign Up Button
                         GestureDetector(
-                          onTap: () {
-                            if (_validateEmail(emailController.text) &&
-                                _validatePassword(passwordController.text)) {
-                              signup();
-                            } else {
-                              String errorMsg =
-                                  'تحقق من صحة البريد الإلكتروني وكلمة المرور'; // "Check the email and password validity"
-                              _showSnackBar(context, errorMsg);
-                            }
-                          },
+                          onTap: signup,
                           child: Container(
                             height: 55,
                             width: double.infinity,
@@ -394,13 +437,83 @@ class _RegScreenState extends State<RegScreen> {
   goToHome(BuildContext context) => Navigator.pushNamed(context, 'home');
 
   signup() async {
-    if (_validateEmail(emailController.text) &&
-        _validatePassword(passwordController.text)) {
-      final user = await auth.creatUserWithEmailAndPassword(
-          emailController.text, passwordController.text);
-      if (user != null) {
-        goToHome(context);
-      }
+    // Check if all fields are filled
+    if (fullNameController.text.trim().isEmpty ||
+        emailController.text.trim().isEmpty ||
+        phoneController.text.trim().isEmpty ||
+        passwordController.text.trim().isEmpty ||
+        confirmPasswordController.text.trim().isEmpty ||
+        selectedDate == null ||
+        selectedGender == null) {
+      _showSnackBar(
+          context, 'يرجى ملء جميع الحقول'); // "Please fill all fields"
+      return;
     }
+
+    // Validate email and password
+    if (!_validateEmail(emailController.text)) {
+      _showSnackBar(context, 'البريد الإلكتروني غير صحيح');
+      return;
+    }
+    if (!_validatePassword(passwordController.text)) {
+      _showSnackBar(context,
+          'يجب أن تكون كلمة المرور 8 أحرف على الأقل\n وتحتوي على حرف كبير وحرف صغير ورقم');
+      return;
+    }
+    if (passwordController.text != confirmPasswordController.text) {
+      _showSnackBar(
+          context, 'كلمتا المرور غير متطابقتين'); // "Passwords do not match"
+      return;
+    }
+
+    // Create user
+    try {
+      // Attempt to create the user
+      final user = await auth.creatUserWithEmailAndPassword(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+
+      if (user != null) {
+        // User created successfully, add details to Firestore
+        await addUserDetails();
+        goToHome(context); // Navigate to the home screen
+      }
+    } on FirebaseAuthException catch (e) {
+      // Log the error code and message
+      print('FirebaseAuthException caught: ${e.code}, ${e.message}');
+
+      // Handle specific error codes
+      if (e.code == 'email-already-in-use') {
+        _showSnackBar(context,
+            'البريد الإلكتروني مستخدم بالفعل.'); // "Email is already in use"
+      } else if (e.code == 'invalid-email') {
+        _showSnackBar(context,
+            'صيغة البريد الإلكتروني غير صحيحة.'); // "Invalid email format"
+      } else if (e.code == 'weak-password') {
+        _showSnackBar(
+            context, 'كلمة المرور ضعيفة للغاية.'); // "Password is too weak"
+      } else {
+        // Generic error handling
+        _showSnackBar(context, 'فشل التسجيل. يرجى المحاولة مرة أخرى.');
+      }
+    } catch (e) {
+      // Log any unexpected errors
+      print('Unexpected error caught: $e');
+
+      // Display a generic error message
+      _showSnackBar(context, 'حدث خطأ غير متوقع. حاول مرة أخرى.');
+    }
+  }
+
+  Future addUserDetails() async {
+    await FirebaseFirestore.instance.collection("user").add({
+      "Name": fullNameController.text.trim(),
+      "Email": emailController.text.trim(),
+      "Phone": phoneController.text.trim(),
+      "Gender": genderController.text.trim(), // Use genderController
+      "DateOfBirth": DOBController.text.trim(),
+      "Password": passwordController.text.trim()
+    });
   }
 }
