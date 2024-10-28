@@ -512,8 +512,7 @@ class _RegScreenState extends State<RegScreen> {
       "Email": emailController.text.trim(),
       "Phone": phoneController.text.trim(),
       "Gender": genderController.text.trim(), // Use genderController
-      "DateOfBirth": DOBController.text.trim(),
-      "Password": passwordController.text.trim()
+      "DateOfBirth": DOBController.text.trim()
     });
   }
 }
