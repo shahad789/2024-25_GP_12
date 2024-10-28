@@ -106,6 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 200.0),
               child: Container(
+                height: MediaQuery.of(context).size.height,
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(40),
@@ -117,160 +118,162 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 18.0),
                   child: Form(
                     key: formState,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              'مرحباً\nتسجيل الدخول!',
-                              style: TextStyle(
-                                fontSize: 30,
-                                color: Color(0xff180A44),
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.right,
-                              maxLines: 2,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Email TextField with real-time validation and required field check
-                        // Email TextField with real-time validation and syntax check
-                        TextFormField(
-                          controller: _emailController,
-                          textAlign: TextAlign.right,
-                          decoration: InputDecoration(
-                            suffixIcon: Icon(
-                              emailError == null ? Icons.check : Icons.error,
-                              color: emailError == null
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                            label: const Text(
-                              'البريد الإلكتروني',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
-                            errorText: emailError,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'يجب إدخال البريد الإلكتروني';
-                            } else if (!_validateEmail(value)) {
-                              return 'البريد الإلكتروني غير صحيح، مثال: name@example.com';
-                            }
-                            return null;
-                          },
-                          onChanged: _onEmailChanged,
-                        ),
-
-                        const SizedBox(height: 20),
-
-// Password TextField with real-time validation and syntax check
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: !_isPasswordVisible,
-                          textAlign: TextAlign.right,
-                          decoration: InputDecoration(
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isPasswordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                color: Colors.grey,
-                              ),
-                              onPressed: _togglePasswordVisibility,
-                            ),
-                            label: const Text(
-                              'كلمة المرور',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
-                            errorText: passwordError,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'يجب إدخال كلمة المرور';
-                            } else if (!_validatePassword(value)) {
-                              return 'يجب أن تكون كلمة المرور 8 أحرف على الأقل\n وتحتوي على حرف كبير وحرف صغير ورقم';
-                            }
-                            return null;
-                          },
-                          onChanged: _onPasswordChanged,
-                        ),
-
-                        const SizedBox(height: 40),
-
-                        GestureDetector(
-                          onTap: login,
-                          child: Container(
-                            height: 40,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              gradient: const LinearGradient(colors: [
-                                Color(0xff180A44),
-                                Color(0xff180A44),
-                              ]),
-                            ),
-                            child: const Center(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
+                            child: Align(
+                              alignment: Alignment.centerRight,
                               child: Text(
-                                'تسجيل الدخول',
+                                'مرحباً\nتسجيل الدخول!',
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  color: Color(0xff180A44),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.right,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Email TextField with real-time validation and required field check
+                          // Email TextField with real-time validation and syntax check
+                          TextFormField(
+                            controller: _emailController,
+                            textAlign: TextAlign.right,
+                            decoration: InputDecoration(
+                              suffixIcon: Icon(
+                                emailError == null ? Icons.check : Icons.error,
+                                color: emailError == null
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                              label: const Text(
+                                'البريد الإلكتروني',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.white,
+                                  color: Color(0xff180A44),
                                 ),
                               ),
+                              errorText: emailError,
                             ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'يجب إدخال البريد الإلكتروني';
+                              } else if (!_validateEmail(value)) {
+                                return 'البريد الإلكتروني غير صحيح، مثال: name@example.com';
+                              }
+                              return null;
+                            },
+                            onChanged: _onEmailChanged,
                           ),
-                        ),
-                        const SizedBox(height: 20),
 
-                        // Sign up prompt
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Text(
-                                "ليس لديك حساب؟",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
+                          const SizedBox(height: 20),
+
+                          // Password TextField with real-time validation and syntax check
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: !_isPasswordVisible,
+                            textAlign: TextAlign.right,
+                            decoration: InputDecoration(
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
                                   color: Colors.grey,
                                 ),
+                                onPressed: _togglePasswordVisibility,
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const RegScreen()),
-                                  );
-                                },
-                                child: const Text(
-                                  "إنشاء حساب",
+                              label: const Text(
+                                'كلمة المرور',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              errorText: passwordError,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'يجب إدخال كلمة المرور';
+                              } else if (!_validatePassword(value)) {
+                                return 'يجب أن تكون كلمة المرور 8 أحرف على الأقل\n وتحتوي على حرف كبير وحرف صغير ورقم';
+                              }
+                              return null;
+                            },
+                            onChanged: _onPasswordChanged,
+                          ),
+
+                          const SizedBox(height: 40),
+
+                          GestureDetector(
+                            onTap: login,
+                            child: Container(
+                              height: 40,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                gradient: const LinearGradient(colors: [
+                                  Color(0xff180A44),
+                                  Color(0xff180A44),
+                                ]),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'تسجيل الدخول',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 17,
-                                    color: Colors.black,
+                                    fontSize: 20,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(height: 20),
+
+                          // Sign up prompt
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Text(
+                                  "ليس لديك حساب؟",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const RegScreen()),
+                                    );
+                                  },
+                                  child: const Text(
+                                    "إنشاء حساب",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 17,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ), //end
                   ),
                 ),
               ),
