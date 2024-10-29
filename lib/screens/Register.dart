@@ -29,6 +29,7 @@ class _RegScreenState extends State<RegScreen> {
   bool _isConfirmPasswordVisible = false;
   String _emailError = '';
   String _passwordError = '';
+  String? phoneError; // Added phone error variable
 
   @override
   void dispose() {
@@ -53,6 +54,20 @@ class _RegScreenState extends State<RegScreen> {
     bool hasDigits = password.contains(RegExp(r'[0-9]'));
     bool hasMinLength = password.length >= 8;
     return hasUppercase && hasLowercase && hasDigits && hasMinLength;
+  }
+
+  bool _validatePhone(String phone) {
+    String pattern =
+        r'^05\d{8}$'; // Ensures phone starts with 05 and is 10 digits
+    return RegExp(pattern).hasMatch(phone);
+  }
+
+  void _onPhoneChanged(String phone) {
+    setState(() {
+      phoneError = _validatePhone(phone)
+          ? null
+          : 'يجب أن يبدأ رقم الهاتف بـ05 ويكون مكوناً من 10 أرقام';
+    });
   }
 
   void _showSnackBar(BuildContext context, String message) {
@@ -129,86 +144,116 @@ class _RegScreenState extends State<RegScreen> {
                         const SizedBox(height: 20),
 
                         // Full Name TextField
+                        const Padding(
+                          padding: EdgeInsets.only(left: 280.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'الاسم الكامل',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
                         TextField(
                           controller: fullNameController,
                           textAlign: TextAlign.right,
-                          decoration: InputDecoration(
-                            suffixIcon: Icon(
-                              Icons.check,
-                              color: Colors.grey,
-                            ),
-                            label: const Text(
-                              'الاسم الكامل',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
+                          decoration: const InputDecoration(
+                            suffixIcon: Icon(Icons.check, color: Colors.grey),
                           ),
                         ),
 
                         const SizedBox(height: 15),
 
-                        // Email TextField with real-time validation
+                        // Email Label
+                        const Padding(
+                          padding: EdgeInsets.only(left: 280.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'البريد الإلكتروني',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
                         TextField(
                           controller: emailController,
                           textAlign: TextAlign.right,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(
-                              Icons.email,
-                              color: Colors.grey,
-                            ),
-                            label: const Text(
-                              'البريد الإلكتروني',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
+                            suffixIcon: Icon(Icons.email, color: Colors.grey),
                             errorText: _emailError.isNotEmpty
-                                ? 'البريد الإلكتروني غير صحيح, مثال: name@example.com' // Show the example when there's an error
+                                ? 'البريد الإلكتروني غير صحيح, مثال: name@example.com'
                                 : null,
-                            helperText: null, // Remove the helper text
-                            helperStyle: const TextStyle(
-                                color: Colors
-                                    .red), // You can keep this for styling, but since helperText is null, this won't show.
                           ),
                           onChanged: (value) {
                             setState(() {
-                              // Validate the email syntax
                               _emailError = _validateEmail(value)
                                   ? ''
-                                  : 'البريد الإلكتروني غير صحيح'; // Keep the original error message
+                                  : 'البريد الإلكتروني غير صحيح';
                             });
                           },
                         ),
 
                         const SizedBox(height: 15),
 
-                        // Phone Number TextField
+                        // Phone Number Label
+                        const Padding(
+                          padding: EdgeInsets.only(left: 280.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'رقم الهاتف',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
                         TextField(
                           controller: phoneController,
                           textAlign: TextAlign.right,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(
-                              Icons.phone,
-                              color: Colors.grey,
-                            ),
-                            label: const Text(
-                              'رقم الهاتف',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
+                            errorText: phoneError,
                           ),
+                          onChanged: _onPhoneChanged,
                         ),
 
                         const SizedBox(height: 15),
 
-                        // Date of Birth Field
+                        // Date of Birth Label
+                        const Padding(
+                          padding: EdgeInsets.only(left: 280.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'تاريخ الميلاد',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
                         GestureDetector(
                           onTap: () async {
                             DateTime? date = await showDatePicker(
@@ -220,78 +265,78 @@ class _RegScreenState extends State<RegScreen> {
                             if (date != null) {
                               setState(() {
                                 selectedDate = date;
-                                DOBController
-                                    .text = '${selectedDate!.toLocal()}'
-                                        .split(' ')[
-                                    0]; // Display selected date in format 'YYYY-MM-DD'
+                                DOBController.text =
+                                    '${selectedDate!.toLocal()}'.split(' ')[0];
                               });
                             }
                           },
                           child: AbsorbPointer(
                             child: TextField(
-                              controller:
-                                  DOBController, // Use the DOB controller here
+                              controller: DOBController,
                               textAlign: TextAlign.right,
-                              decoration: InputDecoration(
-                                suffixIcon: const Icon(
-                                  Icons.calendar_today,
-                                  color: Colors.grey,
-                                ),
-                                hintText:
-                                    'تاريخ الميلاد', // "Date of Birth" placeholder in Arabic
-                                hintStyle: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xff180A44),
-                                ),
+                              decoration: const InputDecoration(
+                                suffixIcon: Icon(Icons.calendar_today,
+                                    color: Colors.grey),
                               ),
                             ),
                           ),
                         ),
 
-                        const SizedBox(height: 5),
-// Gender Dropdown without border
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            DropdownButtonFormField<String>(
-                              value: selectedGender,
-                              hint: const Text(
-                                'اختر الجنس', // "Select Gender" in Arabic
-                                style: TextStyle(
-                                  color: Color(0xff180A44),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              items: genders
-                                  .map((gender) => DropdownMenuItem(
-                                        value: gender,
-                                        child: Text(gender),
-                                      ))
-                                  .toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedGender = value;
-                                  genderController.text = value ??
-                                      ''; // Update the controller with the selected value
-                                });
-                              },
-                              decoration: InputDecoration(
-                                border: InputBorder.none, // Remove the border
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            // Line below the dropdown
-                            Container(
-                              height: 1,
-                              width: double.infinity,
-                              color:
-                                  const Color(0xff180A44), // Color of the line
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 15),
 
-                        // Password TextField with validation and visibility toggle
+                        // Gender Label
+                        const Padding(
+                          padding: EdgeInsets.only(left: 280.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'الجنس',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
+                        DropdownButtonFormField<String>(
+                          value: selectedGender,
+                          items: genders
+                              .map((gender) => DropdownMenuItem(
+                                    value: gender,
+                                    child: Text(gender),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedGender = value;
+                              genderController.text =
+                                  value ?? ''; // Update the controller
+                            });
+                          },
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        // Password Label
+                        const Padding(
+                          padding: EdgeInsets.only(left: 280.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'كلمة المرور',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
                         TextField(
                           controller: passwordController,
                           obscureText: !_isPasswordVisible,
@@ -310,29 +355,38 @@ class _RegScreenState extends State<RegScreen> {
                                 });
                               },
                             ),
-                            label: const Text(
-                              'كلمة المرور',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
                             errorText: _passwordError.isNotEmpty
-                                ? _passwordError
+                                ? 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل وتحتوي على حروف كبيرة وصغيرة وأرقام'
                                 : null,
                           ),
                           onChanged: (value) {
                             setState(() {
                               _passwordError = _validatePassword(value)
                                   ? ''
-                                  : 'يجب أن تكون كلمة المرور 8 أحرف على الأقل\n وتحتوي على حرف كبير وحرف صغير ورقم'; // Password requirements in Arabic
+                                  : 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل وتحتوي على حروف كبيرة وصغيرة وأرقام';
                             });
                           },
                         ),
 
                         const SizedBox(height: 15),
 
-                        // Confirm Password TextField with visibility toggle
+                        // Confirm Password Label
+                        const Padding(
+                          padding: EdgeInsets.only(left: 280.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'تأكيد كلمة المرور',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
                         TextField(
                           controller: confirmPasswordController,
                           obscureText: !_isConfirmPasswordVisible,
@@ -351,13 +405,6 @@ class _RegScreenState extends State<RegScreen> {
                                       !_isConfirmPasswordVisible;
                                 });
                               },
-                            ),
-                            label: const Text(
-                              'تأكيد كلمة المرور',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
                             ),
                           ),
                         ),
@@ -466,6 +513,12 @@ class _RegScreenState extends State<RegScreen> {
       return;
     }
 
+    // Validate phone number
+    if (!_validatePhone(phoneController.text)) {
+      _showSnackBar(context, 'رقم الهاتف غير صحيح');
+      return;
+    }
+
     // Create user
     try {
       // Attempt to create the user
@@ -515,4 +568,11 @@ class _RegScreenState extends State<RegScreen> {
       "DateOfBirth": DOBController.text.trim()
     });
   }
+  /*final user = UserModel(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+      fullName: fullNameController.text.trim(),
+      phone: phoneController.text.trim(),
+      dob: dob,
+      gender: gender);*/
 }

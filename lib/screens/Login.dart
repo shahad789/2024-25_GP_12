@@ -139,40 +139,58 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 20),
 
                         // Email TextField with real-time validation and required field check
-                        // Email TextField with real-time validation and syntax check
+                        const Padding(
+                          padding: EdgeInsets.only(left: 280.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'البريد الإلكتروني',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
                         TextFormField(
                           controller: _emailController,
                           textAlign: TextAlign.right,
+                          keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            suffixIcon: Icon(
-                              emailError == null ? Icons.check : Icons.error,
-                              color: emailError == null
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                            label: const Text(
-                              'البريد الإلكتروني',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
+                            suffixIcon: Icon(Icons.email, color: Colors.grey),
                             errorText: emailError,
                           ),
+                          onChanged: _onEmailChanged,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'يجب إدخال البريد الإلكتروني';
-                            } else if (!_validateEmail(value)) {
-                              return 'البريد الإلكتروني غير صحيح، مثال: name@example.com';
                             }
-                            return null;
+                            return emailError;
                           },
-                          onChanged: _onEmailChanged,
                         ),
 
                         const SizedBox(height: 20),
 
-// Password TextField with real-time validation and syntax check
+                        // Password TextField with real-time validation and syntax check
+                        const Padding(
+                          padding: EdgeInsets.only(left: 280.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'كلمة المرور',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
                         TextFormField(
                           controller: _passwordController,
                           obscureText: !_isPasswordVisible,
@@ -187,20 +205,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               onPressed: _togglePasswordVisibility,
                             ),
-                            label: const Text(
-                              'كلمة المرور',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
                             errorText: passwordError,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'يجب إدخال كلمة المرور';
                             } else if (!_validatePassword(value)) {
-                              return 'يجب أن تكون كلمة المرور 8 أحرف على الأقل\n وتحتوي على حرف كبير وحرف صغير ورقم';
+                              return passwordError;
                             }
                             return null;
                           },
@@ -300,9 +311,7 @@ class _LoginScreenState extends State<LoginScreen> {
         print("user logged in");
         Navigator.pushNamed(context, 'home');
       } else {
-        // Show error message in Arabic
-        _showSnackBar(context,
-            'البريد الإلكتروني أو كلمة المرور غير صحيحة'); // "Email or password is incorrect"
+        _showSnackBar(context, 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
       }
     }
   }
