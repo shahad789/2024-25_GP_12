@@ -194,7 +194,7 @@ class _DetailsBroState extends State<DetailsBro> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: boxdetail(
-                              ' دورات المياه', '${propertyData!['numOfBath']}'),
+                              'المساحة', '${propertyData!['size']} م²'),
                         ),
                       ],
                     ),
@@ -208,7 +208,7 @@ class _DetailsBroState extends State<DetailsBro> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: boxdetail(
-                              'المساحة', '${propertyData!['size']} م²'),
+                              ' دورات المياه', '${propertyData!['numOfBath']}'),
                         ),
                       ],
                     ),
