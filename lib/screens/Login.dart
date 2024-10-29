@@ -141,8 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 20),
 
                           // Email TextField with real-time validation and required field check
-                          // Email TextField with real-time validation and syntax check
-                          // Email TextField with real-time validation and required field check
+
                           const Padding(
                             padding: EdgeInsets.only(left: 280.0),
                             child: Row(
