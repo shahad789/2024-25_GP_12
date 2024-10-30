@@ -145,7 +145,7 @@ class _RegScreenState extends State<RegScreen> {
 
                         // Full Name TextField
                         const Padding(
-                          padding: EdgeInsets.only(left: 280.0),
+                          padding: EdgeInsets.only(left: 250.0),
                           child: Row(
                             children: [
                               Text(
@@ -172,7 +172,7 @@ class _RegScreenState extends State<RegScreen> {
 
                         // Email Label
                         const Padding(
-                          padding: EdgeInsets.only(left: 280.0),
+                          padding: EdgeInsets.only(left: 250.0),
                           child: Row(
                             children: [
                               Text(
@@ -210,7 +210,7 @@ class _RegScreenState extends State<RegScreen> {
 
                         // Phone Number Label
                         const Padding(
-                          padding: EdgeInsets.only(left: 280.0),
+                          padding: EdgeInsets.only(left: 250.0),
                           child: Row(
                             children: [
                               Text(
@@ -239,7 +239,7 @@ class _RegScreenState extends State<RegScreen> {
 
                         // Date of Birth Label
                         const Padding(
-                          padding: EdgeInsets.only(left: 280.0),
+                          padding: EdgeInsets.only(left: 250.0),
                           child: Row(
                             children: [
                               Text(
@@ -286,7 +286,7 @@ class _RegScreenState extends State<RegScreen> {
 
                         // Gender Label
                         const Padding(
-                          padding: EdgeInsets.only(left: 280.0),
+                          padding: EdgeInsets.only(left: 250.0),
                           child: Row(
                             children: [
                               Text(
@@ -322,7 +322,7 @@ class _RegScreenState extends State<RegScreen> {
 
                         // Password Label
                         const Padding(
-                          padding: EdgeInsets.only(left: 280.0),
+                          padding: EdgeInsets.only(left: 250.0),
                           child: Row(
                             children: [
                               Text(
@@ -372,7 +372,7 @@ class _RegScreenState extends State<RegScreen> {
 
                         // Confirm Password Label
                         const Padding(
-                          padding: EdgeInsets.only(left: 280.0),
+                          padding: EdgeInsets.only(left: 250.0),
                           child: Row(
                             children: [
                               Text(
