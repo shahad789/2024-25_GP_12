@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Register.dart';
+import 'reset.dart';
 import 'package:daar/screens/authentication.dart';
 import 'package:get/get.dart';
 
@@ -219,6 +220,29 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                             onChanged: _onPasswordChanged,
+                          ),
+
+                          const SizedBox(height: 40),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ResetPassword(),
+                                ),
+                              );
+                            },
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: const Text(
+                                "هل نسيت كلمة المرور؟",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
                           ),
 
                           const SizedBox(height: 40),

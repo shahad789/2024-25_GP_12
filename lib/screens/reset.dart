@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 class ResetPassword extends StatefulWidget {
@@ -8,18 +10,95 @@ class ResetPassword extends StatefulWidget {
 }
 
 class ResetPasswordState extends State<ResetPassword> {
-  late String email;
-  GlobalKey<FormState> formState = GlobalKey<FormState>();
-
   @override
   Widget build(BuildContext context) {
     return const ResetPasswordScreen();
   }
 }
 
-// Moved ResetPasswordScreen outside ResetPasswordState
-class ResetPasswordScreen extends StatelessWidget {
+class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
+
+  @override
+  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+}
+
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  String? emailError;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  // Email validation using regex
+  bool _validateEmail(String email) {
+    String pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+    return RegExp(pattern).hasMatch(email);
+  }
+
+  // Function to handle when the email field is changed
+  void _onEmailChanged(String email) {
+    setState(() {
+      emailError = _validateEmail(email)
+          ? null
+          : 'البريد الإلكتروني غير صحيح، مثال: name@example.com';
+    });
+  }
+
+  // Function to reset the password
+  Future<void> passwordReset() async {
+    // Check if the email field is empty or invalid before attempting reset
+    if (_emailController.text.trim().isEmpty) {
+      setState(() {
+        emailError = 'يجب إدخال البريد الإلكتروني';
+      });
+      return;
+    }
+
+    if (!_validateEmail(_emailController.text.trim())) {
+      setState(() {
+        emailError = 'البريد الإلكتروني غير صحيح';
+      });
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: _emailController.text.trim());
+
+      // Show success dialog when email is sent
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text("تم ارسال رابط إعادة التعيين إلى بريدك الإلكتروني"),
+          );
+        },
+      );
+    } on FirebaseAuthException catch (e) {
+      // Error handling for specific Firebase error codes
+      String errorMessage;
+      if (e.code == 'user-not-found') {
+        errorMessage =
+            'البريد الإلكتروني غير مسجل. الرجاء التأكد والمحاولة مرة أخرى.';
+      } else {
+        errorMessage = e.message ?? "حدث خطأ. حاول مرة أخرى";
+      }
+
+      // Show error dialog based on FirebaseAuthException
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text(errorMessage),
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +127,7 @@ class ResetPasswordScreen extends StatelessWidget {
               top: 50,
               right: 20,
               child: Image.asset(
-                'images/logo_white.png',
+                'lib/assets/images/logow.png',
                 width: 90,
                 height: 90,
               ),
@@ -74,10 +153,7 @@ class ResetPasswordScreen extends StatelessWidget {
                     children: [
                       // Reset Password text
                       const Padding(
-                        padding: EdgeInsets.only(
-                          top: 20.0,
-                          bottom: 20.0,
-                        ),
+                        padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: Text(
@@ -95,28 +171,38 @@ class ResetPasswordScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
                       // Email TextField
-                      const TextField(
-                        textAlign: TextAlign.right,
-                        decoration: InputDecoration(
-                          suffixIcon: Icon(
-                            Icons.email,
-                            color: Colors.grey,
-                          ),
-                          label: Text(
-                            'البريد الإلكتروني',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xff180A44),
+                      const Padding(
+                        padding: EdgeInsets.only(left: 250.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              'البريد الإلكتروني',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xff180A44),
+                              ),
                             ),
-                          ),
+                            SizedBox(width: 4),
+                            Text('*', style: TextStyle(color: Colors.red)),
+                          ],
                         ),
                       ),
+                      TextFormField(
+                        controller: _emailController,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          suffixIcon:
+                              const Icon(Icons.email, color: Colors.grey),
+                          errorText: emailError,
+                        ),
+                        onChanged: _onEmailChanged,
+                      ),
                       const SizedBox(height: 40),
+
                       // Reset Button
                       GestureDetector(
-                        onTap: () {
-                          // Handle reset password action here
-                        },
+                        onTap: passwordReset,
                         child: Container(
                           height: 55,
                           width: double.infinity,
