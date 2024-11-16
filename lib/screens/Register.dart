@@ -3,6 +3,8 @@ import 'package:daar/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:daar/screens/authentication.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:daar/usprovider/UserProvider.dart';
 
 class RegScreen extends StatefulWidget {
   const RegScreen({Key? key}) : super(key: key);
@@ -508,8 +510,7 @@ class _RegScreenState extends State<RegScreen> {
       return;
     }
     if (passwordController.text != confirmPasswordController.text) {
-      _showSnackBar(
-          context, 'كلمتا المرور غير متطابقتين'); // "Passwords do not match"
+      _showSnackBar(context, 'كلمتا المرور غير متطابقتين');
       return;
     }
 
@@ -519,7 +520,6 @@ class _RegScreenState extends State<RegScreen> {
       return;
     }
 
-    // Create user
     try {
       // Attempt to create the user
       final user = await auth.creatUserWithEmailAndPassword(
@@ -528,51 +528,43 @@ class _RegScreenState extends State<RegScreen> {
       );
 
       if (user != null) {
-        // User created successfully, add details to Firestore
-        await addUserDetails();
-        goToHome(context); // Navigate to the home screen
+        final userEmail = user.email;
+
+        // Add user details to Firestore
+        final userDoc =
+            await FirebaseFirestore.instance.collection("user").add({
+          "Name": fullNameController.text.trim(),
+          "Email": userEmail,
+          "Phone": phoneController.text.trim(),
+          "Gender": selectedGender,
+          "DateOfBirth": selectedDate.toString(),
+        });
+
+        // Save user data to UserProvider
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.setUser(
+          userDoc.id, // Document ID from Firestore
+          fullNameController.text.trim(), // User's full name
+          userEmail!, // User's email
+        );
+
+        // Navigate to the home screen
+        goToHome(context);
       }
     } on FirebaseAuthException catch (e) {
-      // Log the error code and message
-      print('FirebaseAuthException caught: ${e.code}, ${e.message}');
-
-      // Handle specific error codes
+      // Handle Firebase errors
       if (e.code == 'email-already-in-use') {
-        _showSnackBar(context,
-            'البريد الإلكتروني مستخدم بالفعل.'); // "Email is already in use"
+        _showSnackBar(context, 'البريد الإلكتروني مستخدم بالفعل.');
       } else if (e.code == 'invalid-email') {
-        _showSnackBar(context,
-            'صيغة البريد الإلكتروني غير صحيحة.'); // "Invalid email format"
+        _showSnackBar(context, 'صيغة البريد الإلكتروني غير صحيحة.');
       } else if (e.code == 'weak-password') {
-        _showSnackBar(
-            context, 'كلمة المرور ضعيفة للغاية.'); // "Password is too weak"
+        _showSnackBar(context, 'كلمة المرور ضعيفة للغاية.');
       } else {
-        // Generic error handling
         _showSnackBar(context, 'فشل التسجيل. يرجى المحاولة مرة أخرى.');
       }
     } catch (e) {
-      // Log any unexpected errors
-      print('Unexpected error caught: $e');
-
-      // Display a generic error message
+      // Handle unexpected errors
       _showSnackBar(context, 'حدث خطأ غير متوقع. حاول مرة أخرى.');
     }
   }
-
-  Future addUserDetails() async {
-    await FirebaseFirestore.instance.collection("user").add({
-      "Name": fullNameController.text.trim(),
-      "Email": emailController.text.trim(),
-      "Phone": phoneController.text.trim(),
-      "Gender": genderController.text.trim(), // Use genderController
-      "DateOfBirth": DOBController.text.trim()
-    });
-  }
-  /*final user = UserModel(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-      fullName: fullNameController.text.trim(),
-      phone: phoneController.text.trim(),
-      dob: dob,
-      gender: gender);*/
 }

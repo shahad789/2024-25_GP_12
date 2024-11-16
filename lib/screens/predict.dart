@@ -2,17 +2,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'home_screen.dart'; // تأكد من استيراد صفحة home_screen.dart
+import '../service/api_service.dart';
+import 'home_screen.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
   ));
-  runApp(const predictpage());
+  runApp(const PredictPage());
 }
 
-class predictpage extends StatelessWidget {
-  const predictpage({super.key});
+class PredictPage extends StatelessWidget {
+  const PredictPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,26 +35,94 @@ class PropertyDetailsPage extends StatefulWidget {
   createState() => _PropertyDetailsPageState();
 }
 
-// إضافة المدينة والحي
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   String? selectedCity;
   String? selectedNeighborhood;
-  String? selectedPropertyType; // المتغير لتخزين نوع العقار المحدد
-  bool showEstimation = false; // متغير للتحكم في عرض صندوق القيمة
+  String? selectedPropertyType;
+  bool showEstimation = false;
+  double? predictedPrice;
 
-  final List<String> cities = [
-    'الرياض',
-    'جدة',
-    'الدمام',
-    'الخبر',
-    'أخرى',
-  ];
+  final List<String> cities = ['الرياض', 'جدة', 'الدمام', 'الخبر'];
+  List<String> neighborhoods = [];
+  final List<String> propertyTypes = ['شقة', 'فيلا', 'دور'];
 
-  final List<String> neighborhoods = ['حي 1', 'حي 2', 'حي 3'];
+  final TextEditingController _areaController = TextEditingController();
+  final TextEditingController _roomsController = TextEditingController();
+  final TextEditingController _bathroomsController = TextEditingController();
 
-  final List<String> propertyTypes = ['دور', 'فيلا', 'شقة']; // أنواع العقارات
+  Future<void> loadDistricts() async {
+    if (selectedCity == null) return;
 
-  // تقدير العقار
+    try {
+      List<String> districts = await ApiService.getDistricts(selectedCity!);
+      neighborhoods = districts.map((e) => e.trim()).toSet().toList();
+      selectedNeighborhood = null;
+      setState(() {});
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Failed to load districts. Please try again.')),
+      );
+    }
+  }
+
+  String mapPropertyTypeToEnglish(String propertyType) {
+    switch (propertyType) {
+      case 'شقة':
+        return 'apartment';
+      case 'فيلا':
+        return 'villa';
+      case 'دور':
+        return 'floor';
+      default:
+        return 'apartment';
+    }
+  }
+
+  Future<void> predictPrice() async {
+    final area = double.tryParse(_areaController.text);
+    final rooms = int.tryParse(_roomsController.text);
+    final bathrooms = int.tryParse(_bathroomsController.text);
+
+    if (selectedCity == null ||
+        selectedNeighborhood == null ||
+        selectedPropertyType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى ملء جميع الحقول ببيانات صحيحة.')),
+      );
+      return;
+    }
+    if (area == null || rooms == null || bathrooms == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text('يرجى إدخال قيم صحيحة للمساحة وعدد الغرف ودورات المياه.')),
+      );
+      return;
+    }
+    try {
+      final englishPropertyType =
+          mapPropertyTypeToEnglish(selectedPropertyType!);
+      predictedPrice = await ApiService.predictPrice(
+        city: selectedCity!,
+        district: selectedNeighborhood!,
+        propertyType: englishPropertyType,
+        area: area,
+        rooms: rooms,
+        bathrooms: bathrooms,
+      );
+
+      setState(() {
+        showEstimation = true;
+      });
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Failed to predict price. Please try again later.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,7 +140,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           IconButton(
             icon: const Icon(Icons.arrow_forward, color: Colors.white),
             onPressed: () {
-              // العودة إلى الصفحة الرئيسية
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -81,9 +149,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF180A44),
-        ),
+        color: const Color(0xFF180A44),
         child: SingleChildScrollView(
           child: Container(
             decoration: const BoxDecoration(
@@ -93,32 +159,23 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 topRight: Radius.circular(40.0),
               ),
             ),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 18.0, vertical: 30.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               children: [
-                const SizedBox(height: 20),
-                _buildPropertyType(), // إضافة واجهة اختيار نوع العقار
-                const SizedBox(height: 20),
-
-                // إضافة الخط الفاصل هنا
-                const Divider(
-                  color: Colors.white, // لون الخط
-                  thickness: 2, // سمك الخط
-                  height: 40, // المسافة حول الخط
-                ),
-
+                _buildPropertyTypeButtons(),
+                const SizedBox(height: 60),
+                _buildInputField(
+                    'مساحة الأرض (متر مربع)', Icons.landscape, _areaController),
+                const SizedBox(height: 30),
+                _buildInputField('عدد الغرف', Icons.bed, _roomsController),
                 const SizedBox(height: 30),
                 _buildInputField(
-                    context, 'مساحة الأرض (متر مربع)', Icons.landscape),
-                const SizedBox(height: 30),
-                _buildInputField(context, 'عدد الغرف', Icons.bed),
-                const SizedBox(height: 30),
-                _buildInputField(context, 'عدد دورات المياه', Icons.bathtub),
+                    'عدد دورات المياه', Icons.bathtub, _bathroomsController),
                 const SizedBox(height: 30),
                 _buildDropdownField('المدينة', cities, (value) {
                   setState(() {
                     selectedCity = value;
+                    loadDistricts();
                   });
                 }),
                 const SizedBox(height: 30),
@@ -128,10 +185,38 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                   });
                 }),
                 const SizedBox(height: 30),
-                _buildHelpBox(), // الزر موجود هنا
-                const SizedBox(height: 30),
+                GestureDetector(
+                  onTap: predictPrice,
+                  child: Container(
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF180A44),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.center, // تغيير المحاذاة إلى المركز
+                      children: [
+                        Text(
+                          'تقدير عقارك',
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.lightbulb, color: Colors.yellow),
+                      ],
+                    ),
+                  ),
+                ),
                 if (showEstimation)
-                  _buildCurrencyInput(), // يظهر إذا كانت الحالة true
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      'السعر المتوقع: ${predictedPrice?.toStringAsFixed(2)} ر.س',
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -140,263 +225,110 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  // دالة لبناء واجهة اختيار نوع العقار
-  Widget _buildPropertyType() {
-    return Column(
-      children: [
-        const Align(
-          alignment: Alignment.centerRight,
-          child: Padding(
-            padding: EdgeInsets.only(right: 20.0),
-          ),
-        ),
-        Container(
-          height: 40,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF180A44),
-                Color(0xFF180A44),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildPropertyTypeButton('دور', Icons.house),
-              _buildVerticalDivider(),
-              _buildPropertyTypeButton('فيلا', Icons.villa),
-              _buildVerticalDivider(),
-              _buildPropertyTypeButton('شقة', Icons.apartment),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _buildPropertyTypeButtons() {
+    return Container(
+      height: 60,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFF180A44),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: List.generate(propertyTypes.length * 2 - 1, (index) {
+          if (index.isOdd) {
+            return _buildVerticalDivider();
+          } else {
+            final type = propertyTypes[index ~/ 2];
+            bool isSelected = selectedPropertyType == type;
 
-  // دالة لإنشاء زر نوع العقار
-  Widget _buildPropertyTypeButton(String label, IconData icon) {
-    bool isSelected = selectedPropertyType == label; // تحقق إذا كان الزر محددًا
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          // تحديث الحالة عند الضغط
-          selectedPropertyType = label; // تعيين النوع المحدد
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.grey
-              : Colors.transparent, // تغيير لون الخلفية عند التحديد
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Row(
-          children: [
-            Icon(icon,
-                color: isSelected
-                    ? Colors.black
-                    : Colors.white), // لون الأيقونة عند التحديد
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected
-                    ? Colors.black
-                    : Colors.white, // لون النص عند التحديد
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedPropertyType = type;
+                });
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width / 4,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.white : const Color(0xFF180A44),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _getIconForPropertyType(type),
+                      color:
+                          isSelected ? const Color(0xFF180A44) : Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      type,
+                      style: TextStyle(
+                        color:
+                            isSelected ? const Color(0xFF180A44) : Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            );
+          }
+        }),
       ),
     );
   }
 
-  // دالة لإنشاء فاصل عمودي (Divider)
   Widget _buildVerticalDivider() {
-    return const VerticalDivider(
-      color: Colors.white, // لون الفاصل
-      thickness: 2, // سمك الفاصل
-      width: 20, // المسافة حول الفاصل
-    );
-  }
-
-  // تقدير عقارك
-  Widget _buildHelpBox() {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          showEstimation = !showEstimation; // تغيير حالة العرض عند الضغط
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.all(12.0),
-        decoration: BoxDecoration(
-          color: const Color(0xFF180A44),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: const Row(
-          mainAxisAlignment:
-              MainAxisAlignment.center, // تغيير المحاذاة إلى المركز
-          children: [
-            Text(
-              'تقدير عقارك',
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(width: 8),
-            Icon(Icons.lightbulb, color: Colors.yellow),
-          ],
-        ),
+    return const SizedBox(
+      height: 55,
+      child: VerticalDivider(
+        color: Colors.white,
+        thickness: 1.5,
+        width: 20,
       ),
     );
   }
 
-  // صندوق قيمة التقدير التي ستظهر
-  Widget _buildCurrencyInput() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: const Color(0xFF180A44),
-              width: 3,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: SizedBox(
-            width: 130,
-            height: 33,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 13),
-                  child: const Text(
-                    'ر.س',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Color.fromARGB(255, 0, 0, 0),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    textAlign: TextAlign.left,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: '',
-                    ),
-                    onSubmitted: (value) {
-                      // يمكنك إضافة أي منطق هنا عند إدخال القيمة
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Container(
-          margin: const EdgeInsets.only(top: 7),
-          child: const Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: 'بناء على العقارات المشابهة\n',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color.fromARGB(255, 0, 0, 0),
-                  ),
-                ),
-                TextSpan(
-                  text: ': قيمة عقارك سوف تكون في حدود',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color.fromARGB(255, 0, 0, 0),
-                  ),
-                ),
-              ],
-            ),
-            textAlign: TextAlign.right,
-          ),
-        ),
-      ],
+  IconData _getIconForPropertyType(String type) {
+    switch (type) {
+      case 'شقة':
+        return Icons.apartment;
+      case 'فيلا':
+        return Icons.house;
+      case 'دور':
+        return Icons.home_work;
+      default:
+        return Icons.home;
+    }
+  }
+
+  Widget _buildInputField(
+      String label, IconData icon, TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
+      keyboardType: TextInputType.number,
     );
   }
 
-  Widget _buildInputField(BuildContext context, String label, IconData icon) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Icon(icon, color: const Color(0xFF180A44)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TextField(
-            textAlign: TextAlign.right,
-            textDirection: TextDirection.rtl,
-            decoration: InputDecoration(
-              label: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // قائمة منسدلة لاختيار العنصر
   Widget _buildDropdownField(
       String label, List<String> items, ValueChanged<String?> onChanged) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Expanded(
-          child: DropdownButton<String>(
-            isExpanded: true,
-            hint: Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                label,
-                textAlign: TextAlign.right,
-              ),
-            ),
-            value: label == 'المدينة' ? selectedCity : selectedNeighborhood,
-            icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF180A44)),
-            items: items.map((String item) {
-              return DropdownMenuItem<String>(
-                value: item,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(item),
-                ),
-              );
-            }).toList(),
-            onChanged: onChanged,
-            underline: Container(
-              height: 1,
-              color: const Color(0xFF180A44),
-            ),
-          ),
-        ),
-      ],
+    return DropdownButton<String>(
+      isExpanded: true,
+      hint: Text(label),
+      value: label == 'المدينة' ? selectedCity : selectedNeighborhood,
+      items: items
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+          .toList(),
+      onChanged: onChanged,
     );
   }
 }

@@ -23,6 +23,7 @@ dependencies:
   firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.4
   get: ^4.6.1
+  provider: ^6.1.2
 
 
 dev_dependencies:
@@ -64,4 +65,5 @@ flutter:
     - assets/images/logow.png
     - lib/assets/images/start.png
     - assets/images/x.jpg
+    - assets/images/profile.png
 

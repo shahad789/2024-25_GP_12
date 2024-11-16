@@ -8,6 +8,8 @@ import 'package:daar/screens/Add1.dart';
 import 'package:daar/screens/predict.dart';
 import 'package:daar/screens/notif.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:daar/usprovider/UserProvider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -49,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (index == 1) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const predictpage()),
+        MaterialPageRoute(builder: (context) => const PredictPage()),
       );
     }
   }
@@ -87,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -130,8 +133,8 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text(
-                'مرحبًا بك، مستخدم',
+              Text(
+                'مرحباً، ${userProvider.userName ?? 'مستخدم'}',
                 style: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,
@@ -203,7 +206,9 @@ class Property {
     final data = doc.data() as Map<String, dynamic>;
     return Property(
       id: doc.id,
-      images: List<String>.from(data['images'] ?? []),
+      images: (data['images'] != null && (data['images'] as List).isNotEmpty)
+          ? List<String>.from(data['images'])
+          : ['assets/images/noimg.png'],
       category: data['category'] ?? '',
       District: data['District'] ?? '',
       city: data['city'] ?? '',
@@ -212,8 +217,7 @@ class Property {
       numofbath: data['numOfBath'] ?? 0,
       numoflivin: data['numOfLivin'] ?? 0,
       numofbed: data['numOfBed'] ?? 0,
-      Date_list:
-          data['Date_list'] ?? Timestamp.now(), // قراءة التاريخ من Firestore
+      Date_list: data['Date_list'] ?? Timestamp.now(),
     );
   }
 }

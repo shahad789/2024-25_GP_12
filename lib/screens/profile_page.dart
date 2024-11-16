@@ -9,6 +9,8 @@ import 'package:daar/screens/Add1.dart';
 import 'package:daar/screens/predict.dart';
 import 'package:daar/screens/home_screen.dart'; // استيراد الصفحة الرئيسية
 import 'package:daar/screens/authentication.dart';
+import 'package:provider/provider.dart';
+import 'package:daar/usprovider/UserProvider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -22,6 +24,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -67,17 +70,18 @@ class _ProfilePageState extends State<ProfilePage> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: 23),
                 CircleAvatar(
                   radius: 50,
+                  backgroundImage: AssetImage('assets/images/profile.png'),
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'شوق الدوسري',
-                  style: TextStyle(
+                  '${userProvider.userName ?? '....تحميل '}',
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -133,7 +137,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (index == 1) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const predictpage()),
+        MaterialPageRoute(builder: (context) => const PredictPage()),
       );
     }
     if (index == 0) {

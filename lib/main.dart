@@ -7,6 +7,8 @@ import 'screens/Register.dart';
 import 'screens/reset.dart';
 import 'screens/WelcomeScreen.dart';
 import 'screens/home_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:daar/usprovider/UserProvider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +29,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
-    runApp(const MyApp());
+    runApp(
+      ChangeNotifierProvider(
+        create: (context) => UserProvider(),
+        child: MyApp(),
+      ),
+    );
   });
 }
 

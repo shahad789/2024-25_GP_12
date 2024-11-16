@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'Register.dart';
 import 'reset.dart';
 import 'package:daar/screens/authentication.dart';
-import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:daar/usprovider/UserProvider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -336,12 +338,32 @@ class _LoginScreenState extends State<LoginScreen> {
       final user = await auth.loginUserWithEmailAndPassword(
           _emailController.text, _passwordController.text);
       if (user != null) {
-        print("user logged in");
-        Navigator.pushNamed(context, 'home');
+        final userEmail = user.email;
+
+        // Fetch user document ID based on email
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('user')
+            .where('Email', isEqualTo: userEmail)
+            .limit(1)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          final userDoc = querySnapshot.docs.first;
+          final userDocId = userDoc.id;
+          final userName = userDoc['Name'];
+
+          // Save user data to UserProvider
+          final userProvider =
+              Provider.of<UserProvider>(context, listen: false);
+          userProvider.setUser(userDocId, userName, userEmail!);
+
+          // Navigate to HomeScreen
+          Navigator.pushNamed(context, 'home');
+        } else {
+          _showSnackBar(context, 'لم يتم العثور على بيانات المستخدم');
+        }
       } else {
-        // Show error message in Arabic
-        _showSnackBar(context,
-            'البريد الإلكتروني أو كلمة المرور غير صحيحة'); // "Email or password is incorrect"
+        _showSnackBar(context, 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
       }
     }
   }
