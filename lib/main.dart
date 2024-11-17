@@ -9,6 +9,7 @@ import 'screens/WelcomeScreen.dart';
 import 'screens/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:daar/usprovider/UserProvider.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +24,9 @@ void main() async {
             messagingSenderId: "916519282950",
             appId: "1:916519282950:web:11ca937284b25166935687"));
   } else {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   }
 
   WidgetsFlutterBinding.ensureInitialized();

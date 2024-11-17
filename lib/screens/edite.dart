@@ -42,7 +42,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   final TextEditingController dateController =
       TextEditingController(text: '2021');
   final TextEditingController priceController =
-      TextEditingController(text: '900000ر.س ');
+      TextEditingController(text: '900000');
   final TextEditingController streetWidthController =
       TextEditingController(text: '20 م');
   final TextEditingController landAreaController =
@@ -370,22 +370,38 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         const Icon(Icons.calendar_today, color: Color(0xFF180A44)),
         const SizedBox(width: 8),
         Expanded(
-          child: TextField(
-            controller: dateController,
-            textAlign: TextAlign.right,
-            textDirection: TextDirection.rtl,
-            decoration: const InputDecoration(
-              label: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text('سنة البناء',
-                      style: TextStyle(
-                          color: Colors.grey, fontWeight: FontWeight.bold)),
-                  SizedBox(width: 8),
-                  Text('*', style: TextStyle(color: Colors.red)),
-                ],
+          child: Stack(
+            alignment:
+                Alignment.topRight, // وضع النجمة في الزاوية العلوية اليمنى
+            children: [
+              TextField(
+                controller: dateController,
+                textAlign: TextAlign.right,
+                textDirection: TextDirection.rtl,
+                decoration: const InputDecoration(
+                  label: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text('سنة البناء',
+                          style: TextStyle(
+                              color: Colors.grey, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              const Positioned(
+                right: 60, // تحديد الموقع الأيمن
+                top: 0, // تحديد الموقع العلوي
+                child: Text(
+                  '*',
+                  style: TextStyle(
+                    color: Colors.red, // لون النجمة
+                    fontSize: 10, // حجم الخط
+                    fontWeight: FontWeight.bold, // سمك الخط
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -397,12 +413,12 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     return Column(
       children: [
         const Align(
-          alignment: Alignment.centerRight,
+          alignment: Alignment.topLeft, // تغيير المحاذاة إلى اليسار
           child: Padding(
-            padding: EdgeInsets.only(right: 20.0),
+            padding: EdgeInsets.only(left: 20.0), // تعديل الحشوة إلى اليسار
             child: Text(
               '*',
-              style: TextStyle(color: Colors.red, fontSize: 20),
+              style: TextStyle(color: Colors.red, fontSize: 13),
             ),
           ),
         ),
@@ -434,7 +450,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  // دالة لإنشاء زر نوع العقار
   Widget _buildPropertyTypeButton(String label, IconData icon) {
     bool isSelected = selectedPropertyType == label; // تحقق إذا كان الزر محددًا
     return GestureDetector(
@@ -482,7 +497,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  ////////////////////////////////////////////////////////////////////////
   Widget _buildHelpBox() {
     return GestureDetector(
       onTap: () {
@@ -528,13 +542,13 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
               label: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  const Text('*', style: TextStyle(color: Colors.red)),
                   Text(
                     label,
                     style: const TextStyle(
                         color: Colors.grey, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 8),
-                  const Text('*', style: TextStyle(color: Colors.red)),
                 ],
               ),
             ),
@@ -545,44 +559,62 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   }
 
   Widget _buildDropdownField(
-      String label, List<String> items, ValueChanged<String?> onChanged) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
+    String label,
+    List<String> items,
+    ValueChanged<String?> onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: DropdownButton<String>(
-            isExpanded: true,
-            hint: Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                label,
-                textAlign: TextAlign.right,
+        Stack(
+          alignment: Alignment.topRight,
+          children: [
+            DropdownButton<String>(
+              isExpanded: true,
+              hint: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  label,
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              value: label == 'المنطقة'
+                  ? selectedRegion
+                  : label == 'المدينة'
+                      ? selectedCity
+                      : selectedNeighborhood,
+              icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF180A44)),
+              items: items.map((String item) {
+                return DropdownMenuItem<String>(
+                  value: item,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(item),
+                  ),
+                );
+              }).toList(),
+              onChanged: onChanged,
+              underline: Container(
+                height: 1,
+                color: const Color(0xFF180A44),
               ),
             ),
-            value: label == 'المنطقة'
-                ? selectedRegion
-                : label == 'المدينة'
-                    ? selectedCity
-                    : selectedNeighborhood,
-            icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF180A44)),
-            items: items.map((String item) {
-              return DropdownMenuItem<String>(
-                value: item,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(item),
+            // النجمة الحمراء فوق الكلمات مكة المكرمة والعتيبية
+            if (selectedRegion == 'مكة المكرمة' || selectedRegion == 'العتيبية')
+              const Positioned(
+                right: 100, // يمكنك ضبط هذه القيمة حسب الحاجة
+                top: 0, // يمكنك ضبط هذه القيمة حسب الحاجة
+                child: Text(
+                  '*',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 10, // حجم النجمة
+                  ),
                 ),
-              );
-            }).toList(),
-            onChanged: onChanged,
-            underline: Container(
-              height: 1,
-              color: const Color(0xFF180A44),
-            ),
-          ),
+              ),
+          ],
         ),
-        const SizedBox(width: 8),
-        const Text('*', style: TextStyle(color: Colors.red)),
+        const SizedBox(height: 5), // مسافة بين الـ Dropdown والنجمة
       ],
     );
   }
@@ -600,13 +632,16 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             textDirection: TextDirection.rtl,
             decoration: const InputDecoration(
               label: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment:
+                    MainAxisAlignment.end, // الإبقاء على تنسيق النص في اليمين
                 children: [
-                  Text('عرض الشارع (متر)',
-                      style: TextStyle(
-                          color: Colors.grey, fontWeight: FontWeight.bold)),
-                  SizedBox(width: 10),
-                  Text('*', style: TextStyle(color: Colors.red)),
+                  Text(
+                    'عرض الشارع (متر)',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -653,32 +688,62 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+// دالة لبناء صف المساعدة والسعر
   Widget _buildHelpAndPriceRow(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildHelpBox(),
+        _buildHelpBox(), // زر المساعدة
         const SizedBox(width: 10),
         Expanded(
-          child: Row(
+          child: Stack(
             children: [
-              Expanded(
-                child: TextField(
-                  controller: priceController,
-                  textAlign: TextAlign.right,
-                  textDirection: TextDirection.rtl,
-                  decoration: const InputDecoration(
-                    labelText: 'السعر',
-                    labelStyle: TextStyle(color: Colors.grey),
-                    border: OutlineInputBorder(),
+              // حقل إدخال السعر
+              _buildPriceFieldWithStar(
+                context,
+                'السعر',
+                null,
+                controller: priceController,
+              ),
+              // النجمة الحمراء فوق حقل السعر
+              const Positioned(
+                left: 5, // تعديل موضع النجمة بشكل أفقي
+                top: 0, // تعديل موضع النجمة بشكل رأسي
+                child: Text(
+                  '*',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 10, // حجم النجمة
                   ),
-                  keyboardType: TextInputType.number,
                 ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+// دالة لبناء حقل إدخال السعر مع النجمة
+  Widget _buildPriceFieldWithStar(
+    BuildContext context,
+    String label,
+    IconData? icon, {
+    TextEditingController? controller,
+  }) {
+    return TextField(
+      controller: controller,
+      textAlign: TextAlign.right, // محاذاة النص إلى اليمين
+      textDirection: TextDirection.rtl, // اتجاه النص من اليمين إلى اليسار
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.grey),
+        prefixText: ' ر.س ', // إضافة النص "ر.س" على اليسار
+        prefixStyle:
+            const TextStyle(fontSize: 12, color: Colors.grey), // تنسيق النص
+        border: const OutlineInputBorder(),
+      ),
+      keyboardType: TextInputType.number, // تأكد من أن الحقل يقبل الأرقام
     );
   }
 
@@ -697,6 +762,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 });
               },
             ),
+            const Text('متاح للبيع'), // خيار "متاح للبيع"
           ],
         ),
         Row(
@@ -710,7 +776,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 });
               },
             ),
-            const Text('متاح للبيع'),
+            const Text('غير متاح للبيع'), // خيار "غير متاح للبيع"
           ],
         ),
       ],

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import '../service/api_service.dart';
 import 'home_screen.dart';
 
@@ -54,28 +55,18 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     if (selectedCity == null) return;
 
     try {
-      List<String> districts = await ApiService.getDistricts(selectedCity!);
-      neighborhoods = districts.map((e) => e.trim()).toSet().toList();
-      selectedNeighborhood = null;
-      setState(() {});
+      neighborhoods = await ApiService.getDistricts(selectedCity!);
+      neighborhoods = neighborhoods.toSet().toList(); // Remove duplicate values
+      setState(() {
+        // Reset selectedNeighborhood if it is not in the updated list
+        if (!neighborhoods.contains(selectedNeighborhood)) {
+          selectedNeighborhood = null;
+        }
+      });
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Failed to load districts. Please try again.')),
+        const SnackBar(content: Text('فشل في تحميل الأحياء. حاول مرة أخرى.')),
       );
-    }
-  }
-
-  String mapPropertyTypeToEnglish(String propertyType) {
-    switch (propertyType) {
-      case 'شقة':
-        return 'apartment';
-      case 'فيلا':
-        return 'villa';
-      case 'دور':
-        return 'floor';
-      default:
-        return 'apartment';
     }
   }
 
@@ -94,19 +85,16 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     }
     if (area == null || rooms == null || bathrooms == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content:
-                Text('يرجى إدخال قيم صحيحة للمساحة وعدد الغرف ودورات المياه.')),
+        const SnackBar(content: Text('يرجى إدخال قيم صحيحة.')),
       );
       return;
     }
+
     try {
-      final englishPropertyType =
-          mapPropertyTypeToEnglish(selectedPropertyType!);
       predictedPrice = await ApiService.predictPrice(
         city: selectedCity!,
         district: selectedNeighborhood!,
-        propertyType: englishPropertyType,
+        propertyType: selectedPropertyType!,
         area: area,
         rooms: rooms,
         bathrooms: bathrooms,
@@ -118,7 +106,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Failed to predict price. Please try again later.')),
+            content: Text('فشل في تقدير السعر. حاول مرة أخرى لاحقًا.')),
       );
     }
   }
@@ -127,14 +115,10 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         elevation: 0.0,
         backgroundColor: const Color(0xFF180A44),
-        toolbarHeight: 70.0,
-        title: const Text(
-          '  تقدير العقار',
-          style: TextStyle(color: Colors.white, fontSize: 20),
-        ),
+        title:
+            const Text('تقدير العقار', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         actions: [
           IconButton(
@@ -155,15 +139,16 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(40.0),
-                topRight: Radius.circular(40.0),
+                topLeft: Radius.circular(40),
+                topRight: Radius.circular(40),
               ),
             ),
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                _buildPropertyTypeButtons(),
-                const SizedBox(height: 60),
+                const SizedBox(height: 20),
+                _buildPropertyType(),
+                const SizedBox(height: 30),
                 _buildInputField(
                     'مساحة الأرض (متر مربع)', Icons.landscape, _areaController),
                 const SizedBox(height: 30),
@@ -185,38 +170,10 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                   });
                 }),
                 const SizedBox(height: 30),
-                GestureDetector(
-                  onTap: predictPrice,
-                  child: Container(
-                    padding: const EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF180A44),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.center, // تغيير المحاذاة إلى المركز
-                      children: [
-                        Text(
-                          'تقدير عقارك',
-                          style: TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.lightbulb, color: Colors.yellow),
-                      ],
-                    ),
-                  ),
-                ),
-                if (showEstimation)
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Text(
-                      'السعر المتوقع: ${predictedPrice?.toStringAsFixed(2)} ر.س',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
+                _buildHelpBox(),
+                const SizedBox(height: 30),
+                if (showEstimation) _buildCurrencyInput(),
+                const SizedBox(height: 30),
               ],
             ),
           ),
@@ -225,110 +182,219 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  Widget _buildPropertyTypeButtons() {
+  Widget _buildPropertyType() {
     return Container(
-      height: 60,
-      width: double.infinity,
+      height: 50,
       decoration: BoxDecoration(
-        color: const Color(0xFF180A44),
-        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+            colors: [Color(0xFF180A44), Color(0xFF180A44)]),
+        borderRadius: BorderRadius.circular(30),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(propertyTypes.length * 2 - 1, (index) {
-          if (index.isOdd) {
-            return _buildVerticalDivider();
-          } else {
-            final type = propertyTypes[index ~/ 2];
-            bool isSelected = selectedPropertyType == type;
-
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedPropertyType = type;
-                });
-              },
-              child: Container(
-                width: MediaQuery.of(context).size.width / 4,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : const Color(0xFF180A44),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      _getIconForPropertyType(type),
-                      color:
-                          isSelected ? const Color(0xFF180A44) : Colors.white,
-                      size: 24,
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      type,
-                      style: TextStyle(
-                        color:
-                            isSelected ? const Color(0xFF180A44) : Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
+        children: propertyTypes.map((type) {
+          bool isSelected = selectedPropertyType == type;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                selectedPropertyType = type;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.grey : Colors.transparent,
+                borderRadius: BorderRadius.circular(30),
               ),
-            );
-          }
-        }),
+              child: Row(
+                children: [
+                  Icon(
+                    type == 'شقة'
+                        ? Icons.apartment
+                        : type == 'فيلا'
+                            ? Icons.house
+                            : Icons.home_work,
+                    color: isSelected ? Colors.black : Colors.white,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    type,
+                    style: TextStyle(
+                        color: isSelected ? Colors.black : Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
-  }
-
-  Widget _buildVerticalDivider() {
-    return const SizedBox(
-      height: 55,
-      child: VerticalDivider(
-        color: Colors.white,
-        thickness: 1.5,
-        width: 20,
-      ),
-    );
-  }
-
-  IconData _getIconForPropertyType(String type) {
-    switch (type) {
-      case 'شقة':
-        return Icons.apartment;
-      case 'فيلا':
-        return Icons.house;
-      case 'دور':
-        return Icons.home_work;
-      default:
-        return Icons.home;
-    }
   }
 
   Widget _buildInputField(
       String label, IconData icon, TextEditingController controller) {
     return TextField(
       controller: controller,
-      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
+      textAlign: TextAlign.right,
+      decoration: InputDecoration(
+        label: Align(
+          alignment: Alignment.centerRight, // Align the label to the right
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        prefixIcon: Icon(icon, color: const Color(0xFF180A44)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      ),
       keyboardType: TextInputType.number,
     );
   }
 
   Widget _buildDropdownField(
       String label, List<String> items, ValueChanged<String?> onChanged) {
-    return DropdownButton<String>(
+    // Ensure the selected value is part of the items list
+    String? dropdownValue =
+        (items.contains(selectedNeighborhood)) ? selectedNeighborhood : null;
+
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+      ),
       isExpanded: true,
-      hint: Text(label),
-      value: label == 'المدينة' ? selectedCity : selectedNeighborhood,
-      items: items
-          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-          .toList(),
-      onChanged: onChanged,
+      hint: Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.right, // Use TextAlign.right instead
+        ),
+      ),
+      value: label == 'المدينة' ? selectedCity : dropdownValue,
+      items: items.map((item) {
+        return DropdownMenuItem(
+          value: item,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              item,
+              textAlign: TextAlign.right, // Use TextAlign.right instead
+            ),
+          ),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          selectedNeighborhood = value;
+        });
+        onChanged(value);
+      },
+      dropdownColor: Colors.white,
+      icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF180A44)),
+    );
+  }
+
+  Widget _buildHelpBox() {
+    return GestureDetector(
+      onTap: predictPrice,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+            color: const Color(0xFF180A44),
+            borderRadius: BorderRadius.circular(8)),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('تقدير عقارك', style: TextStyle(color: Colors.white)),
+            Icon(Icons.lightbulb, color: Colors.yellow)
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrencyInput() {
+    final formattedPrice = predictedPrice != null
+        ? NumberFormat("#,##0.00", "en_US").format(predictedPrice)
+        : '0.00';
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Box for displaying the predicted price
+        Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: const Color(0xFF180A44),
+              width: 3,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: SizedBox(
+            width: 130,
+            height: 40,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const Text(
+                  'ر.س',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color.fromARGB(255, 0, 0, 0),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    formattedPrice,
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color.fromARGB(255, 0, 0, 0),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Text explanation of the predicted price
+        Container(
+          margin: const EdgeInsets.only(top: 7),
+          child: const Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'بناء على العقارات المشابهة\n',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color.fromARGB(255, 0, 0, 0),
+                  ),
+                ),
+                TextSpan(
+                  text: ': قيمة عقارك سوف تكون في حدود',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color.fromARGB(255, 0, 0, 0),
+                  ),
+                ),
+              ],
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
     );
   }
 }
