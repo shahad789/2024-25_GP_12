@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart'; // Import the intl package for date formatting
 import 'package:daar/screens/pass.dart'; // Import your PassPage here
 import 'package:daar/usprovider/UserProvider.dart'; // Import your UserProvider here
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EditPage extends StatefulWidget {
   const EditPage({super.key});
@@ -94,6 +95,57 @@ class _EditPageState extends State<EditPage> {
           ? null
           : 'البريد الإلكتروني غير صحيح, مثال: name@example.com';
     });
+  }
+
+  Future<void> passwordReset() async {
+    // Check if the email field is empty or invalid before attempting reset
+    if (emailController.text.trim().isEmpty) {
+      setState(() {
+        emailError = 'يجب إدخال البريد الإلكتروني';
+      });
+      return;
+    }
+
+    if (!_validateEmail(emailController.text.trim())) {
+      setState(() {
+        emailError = 'البريد الإلكتروني غير صحيح';
+      });
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: emailController.text.trim());
+
+      // Show success dialog when email is sent
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content:
+                const Text("تم ارسال رابط إعادة التعيين إلى بريدك الإلكتروني"),
+          );
+        },
+      );
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      if (e.code == 'user-not-found') {
+        errorMessage =
+            'البريد الإلكتروني غير مسجل. الرجاء التأكد والمحاولة مرة أخرى.';
+      } else {
+        errorMessage = e.message ?? "حدث خطأ. حاول مرة أخرى";
+      }
+
+      // Show error dialog
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text(errorMessage),
+          );
+        },
+      );
+    }
   }
 
   @override
@@ -204,16 +256,13 @@ class _EditPageState extends State<EditPage> {
                               ),
                             ),
                             const SizedBox(height: 10),
+
+                            //resetbutton
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => const PassPage()),
-                                  );
-                                },
+                                onPressed:
+                                    passwordReset, // Call the passwordReset function
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red,
                                   foregroundColor: Colors.white,
