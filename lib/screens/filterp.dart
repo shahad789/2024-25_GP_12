@@ -1,11 +1,10 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:daar/widgets/select_category.dart';
 import 'package:daar/widgets/roomsSelection.dart';
 import 'package:daar/widgets/citydrop.dart';
 import 'package:daar/widgets/districtdrop.dart';
 import 'package:daar/screens/home_screen.dart';
+import '../service/api_service.dart';
 
 class FilterPage extends StatefulWidget {
   const FilterPage({super.key});
@@ -15,16 +14,43 @@ class FilterPage extends StatefulWidget {
 }
 
 class _FilterPageState extends State<FilterPage> {
-  //tracking what was selected :(
+  // Define controllers for text fields
+  String? selectedCategory; // الفئة التي تم اختيارها
+  final TextEditingController minPriceController = TextEditingController();
+  final TextEditingController maxPriceController = TextEditingController();
+  final TextEditingController minSizeController = TextEditingController();
+  final TextEditingController maxSizeController = TextEditingController();
+
+  // Tracking what was selected
   int? selectedRoom;
   int? selectedBath;
-  int? selectedlivin;
+  int? selectedLivin;
   String? selectedCity;
   String? selectedDistrict;
+  double? minPrice;
+  double? maxPrice;
+  double? minSize;
+  double? maxSize;
+
+  List<String> cities = ['الرياض', 'جدة', 'الدمام', 'الخبر'];
+  List<String> neighborhoods = []; // سيتم تحميل الأحياء بناءً على المدينة
+
+  // دالة لتحميل الأحياء من الـ API
+  Future<void> loadDistricts() async {
+    if (selectedCity == null) return;
+
+    try {
+      List<String> districts = await ApiService.getDistricts(selectedCity!);
+      setState(() {
+        neighborhoods = districts;
+      });
+    } catch (e) {
+      print("فشل تحميل الأحياء: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    /////////////////////////////////////////////////start hag app bar//////////////////////////////////////
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -40,7 +66,6 @@ class _FilterPageState extends State<FilterPage> {
           IconButton(
             icon: const Icon(Icons.arrow_forward, color: Colors.white),
             onPressed: () {
-              // العودة إلى الصفحة الرئيسية
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -49,8 +74,6 @@ class _FilterPageState extends State<FilterPage> {
           ),
         ],
       ),
-
-      ///////////////////////////////////////////////end hag app bar///////////////////////////////////////////////////////////
       backgroundColor: const Color(0xFF180A44),
       body: SingleChildScrollView(
         child: Container(
@@ -61,54 +84,48 @@ class _FilterPageState extends State<FilterPage> {
               topRight: Radius.circular(40.0),
             ),
           ),
-          /////body hena yebda
-
           padding: const EdgeInsets.all(20.0),
-
           child: Column(
-            //COLUMN
-            crossAxisAlignment: CrossAxisAlignment
-                .end, // 3ashan yebda men left cuz its an arabic application
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               const SizedBox(height: 20.0),
-              const SelectCategory(), // the widget i did for selecting type of category
-
-              // start of making price filter
-              const SizedBox(
-                  height:
-                      20.0), // masafa ben el shayeen 20 3ashan consistency l2n this is what am using
+              SelectCategory(onCategorySelected: (category) {
+                setState(() {
+                  selectedCategory = category;
+                });
+              }),
+              const SizedBox(height: 20.0),
               const Text(
                 'نطاق السعر',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10.0),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // my boxes
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: TextField(
+                      controller: minPriceController,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'الحد الأدنى (ر.س)', // Min
+                      decoration: const InputDecoration(
+                        labelText: 'الحد الأدنى (ر.س)',
                         border: OutlineInputBorder(),
                       ),
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
+                      controller: maxPriceController,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'الحد الأقصى (ر.س)', // Max
+                      decoration: const InputDecoration(
+                        labelText: 'الحد الأقصى (ر.س)',
                         border: OutlineInputBorder(),
                       ),
                     ),
                   ),
                 ],
               ),
-              ///////////////////////////////////////////////////////////////////////the end of price
-              ///////////////////////////////////////////////////////////////////////begin of number of rooms
-              // Room selection
               const SizedBox(height: 30.0),
               const Text(
                 'عدد الغرف',
@@ -118,8 +135,6 @@ class _FilterPageState extends State<FilterPage> {
                 selectedRoom,
                 (value) => setState(() => selectedRoom = value),
               ),
-
-              // Bathroom selection
               const SizedBox(height: 20.0),
               const Text(
                 'عدد الحمامات',
@@ -129,92 +144,134 @@ class _FilterPageState extends State<FilterPage> {
                 selectedBath,
                 (value) => setState(() => selectedBath = value),
               ),
-
-              // Living room selection
               const SizedBox(height: 20.0),
               const Text(
                 'عدد غرف المعيشة',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               roomsSelection(
-                selectedlivin,
-                (value) => setState(() => selectedlivin = value),
+                selectedLivin,
+                (value) => setState(() => selectedLivin = value),
               ),
-              //////////////////////////////////////////////////////////////////end of bath, living, bed
-              ///////////////////////////////////////////////////////////////start of size
               const SizedBox(height: 30.0),
               const Text(
-                ' حجم العقار (متر مربع)',
+                'حجم العقار (متر مربع)',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10.0),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // my boxes
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: TextField(
+                      controller: minSizeController,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'الحد الأدنى (م²)', // Min
+                      decoration: const InputDecoration(
+                        labelText: 'الحد الأدنى (م²)',
                         border: OutlineInputBorder(),
                       ),
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
+                      controller: maxSizeController,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'الحد الأقصى (م²)', // Max
+                      decoration: const InputDecoration(
+                        labelText: 'الحد الأقصى (م²)',
                         border: OutlineInputBorder(),
                       ),
                     ),
                   ),
                 ],
               ),
-              ///////////////////////////////////////////////////////////////end of size
-              ///////////////////////////////////////////////////////////////start of filter
               const SizedBox(height: 20.0),
               const Text(
                 'المدن',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.right,
               ),
-              cityDropdown(selectedCity, (String? value) {
-                setState(() {
-                  selectedCity = value; // here we keep it so we show esh 25tar
-                });
-              }),
-/////////////////////////////////////////////////////////////end city
-////////////////////////////////////////////////////////////end district
+              DropdownButton<String>(
+                isExpanded: true,
+                value: selectedCity,
+                hint: const Text('اختر المدينة'),
+                items: cities
+                    .map((city) => DropdownMenuItem(
+                          value: city,
+                          child: Text(city),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedCity = value;
+                    selectedDistrict = null; // Clear district when city changes
+                  });
+                  loadDistricts(); // Load districts for the selected city
+                },
+              ),
               const SizedBox(height: 20.0),
               const Text(
                 'الأحياء',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.right,
               ),
-              districtDropDown(selectedDistrict, (String? value) {
-                setState(() {
-                  selectedDistrict = value; // nafs fekra
-                });
-              }),
-
-              //////////////////////////////////////////////////////////////button here
-              const SizedBox(height: 20.0), // Spacing before the next section
-              // Centered filter button
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    /////inshallah code
+              if (neighborhoods.isNotEmpty)
+                DropdownButton<String>(
+                  isExpanded: true,
+                  value: selectedDistrict,
+                  hint: const Text('اختر الحي'),
+                  items: neighborhoods
+                      .map((district) => DropdownMenuItem(
+                            value: district,
+                            child: Text(district),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedDistrict = value;
+                    });
                   },
-                  style: ElevatedButton.styleFrom(
-                    fixedSize: const Size(150, 50),
-                    textStyle: const TextStyle(fontSize: 18),
-                    backgroundColor: const Color.fromARGB(210, 189, 185, 185),
-                    foregroundColor: Colors.white,
+                )
+              else
+                const Center(child: CircularProgressIndicator()),
+              const SizedBox(height: 20.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      final filters = {
+                        'minPrice': double.tryParse(minPriceController.text),
+                        'maxPrice': double.tryParse(maxPriceController.text),
+                        'minSize': double.tryParse(minSizeController.text),
+                        'maxSize': double.tryParse(maxSizeController.text),
+                        'selectedCategory': selectedCategory,
+                        'selectedCity': selectedCity,
+                        'selectedDistrict': selectedDistrict,
+                        'selectedRoom': selectedRoom,
+                        'selectedBath': selectedBath,
+                        'selectedLiving': selectedLivin,
+                      };
+                      Navigator.pop(context, filters);
+                    },
+                    child: const Text('تصفية'),
                   ),
-                  child: const Text('تصفية'),
-                ),
+                  const SizedBox(width: 20.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        minPriceController.clear();
+                        maxPriceController.clear();
+                        minSizeController.clear();
+                        maxSizeController.clear();
+                        selectedRoom = null;
+                        selectedBath = null;
+                        selectedLivin = null;
+                        selectedCity = null;
+                        selectedDistrict = null;
+                      });
+                    },
+                    child: const Text('مسح'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -223,5 +280,12 @@ class _FilterPageState extends State<FilterPage> {
     );
   }
 
-  //////////////////////////////////////////////////////////////////////////////////end of size
+  @override
+  void dispose() {
+    minPriceController.dispose();
+    maxPriceController.dispose();
+    minSizeController.dispose();
+    maxSizeController.dispose();
+    super.dispose();
+  }
 }

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 
 class SelectCategory extends StatefulWidget {
-  const SelectCategory({super.key});
+  final Function(String)? onCategorySelected; // تم تغيير نوع الفئة لتكون String
+
+  const SelectCategory({super.key, this.onCategorySelected});
 
   @override
   State<SelectCategory> createState() => _SelectCategoryState();
 }
 
 class _SelectCategoryState extends State<SelectCategory> {
-  int? selectedCategoryIndex; // to know esh 25tart
+  String? selectedCategory; // لتتبع الفئة المختارة
 
   @override
   Widget build(BuildContext context) {
-    // Get the height of the screen
     double screenHeight = MediaQuery.of(context).size.height;
 
     return SizedBox(
@@ -22,16 +23,17 @@ class _SelectCategoryState extends State<SelectCategory> {
         scrollDirection: Axis.horizontal,
         reverse: true,
         children: [
-          categoryButton(Icons.villa_rounded, "فيلا", 0),
-          categoryButton(Icons.apartment_rounded, "شقه", 1),
-          categoryButton(Icons.stairs_rounded, "دور", 2),
+          categoryButton(Icons.villa_rounded, "فيلا", "فيلا"),
+          categoryButton(Icons.apartment_rounded, "شقه", "شقه"),
+          categoryButton(Icons.stairs_rounded, "دور", "دور"),
         ],
       ),
     );
   }
 
-  Widget categoryButton(IconData icon, String text, int index) {
-    bool isSelected = selectedCategoryIndex == index; //esh select
+  Widget categoryButton(IconData icon, String text, String category) {
+    bool isSelected =
+        selectedCategory == category; // تحقق من إذا كان الزر مختاراً
 
     return Container(
       margin: const EdgeInsets.all(18.0),
@@ -50,8 +52,12 @@ class _SelectCategoryState extends State<SelectCategory> {
       child: InkWell(
         onTap: () {
           setState(() {
-            selectedCategoryIndex = index;
+            selectedCategory = category; // تحديث الفئة المختارة
           });
+          if (widget.onCategorySelected != null) {
+            widget.onCategorySelected!(
+                category); // إشعار الويدجت الأب بالفئة المختارة
+          }
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

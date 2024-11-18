@@ -145,108 +145,113 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
                 height: double.infinity,
                 width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // Reset Password text
-                      const Padding(
-                        padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            'إعادة تعيين\nكلمة المرور',
-                            style: TextStyle(
-                              fontSize: 30,
-                              color: Color(0xff180A44),
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.right,
-                            maxLines: 2,
-                            overflow: TextOverflow.visible,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Email TextField
-                      const Padding(
-                        padding: EdgeInsets.only(left: 250.0),
-                        child: Row(
-                          children: [
-                            Text(
-                              'البريد الإلكتروني',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff180A44),
-                              ),
-                            ),
-                            SizedBox(width: 4),
-                            Text('*', style: TextStyle(color: Colors.red)),
-                          ],
-                        ),
-                      ),
-                      TextFormField(
-                        controller: _emailController,
-                        textAlign: TextAlign.right,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          suffixIcon:
-                              const Icon(Icons.email, color: Colors.grey),
-                          errorText: emailError,
-                        ),
-                        onChanged: _onEmailChanged,
-                      ),
-                      const SizedBox(height: 40),
-
-                      // Reset Button
-                      GestureDetector(
-                        onTap: passwordReset,
-                        child: Container(
-                          height: 55,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xff180A44),
-                                Color(0xff180A44),
-                              ],
-                            ),
-                          ),
-                          child: const Center(
+                child: SingleChildScrollView(
+                  // Added scrollable view
+                  physics:
+                      const BouncingScrollPhysics(), // Optional smooth scrolling
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // Reset Password text
+                        const Padding(
+                          padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
+                          child: Align(
+                            alignment: Alignment.centerRight,
                             child: Text(
-                              'إعادة تعيين كلمة المرور',
+                              'إعادة تعيين\nكلمة المرور',
+                              style: TextStyle(
+                                fontSize: 30,
+                                color: Color(0xff180A44),
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.right,
+                              maxLines: 2,
+                              overflow: TextOverflow.visible,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Email TextField
+                        const Padding(
+                          padding: EdgeInsets.only(left: 250.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'البريد الإلكتروني',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff180A44),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text('*', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
+                        TextFormField(
+                          controller: _emailController,
+                          textAlign: TextAlign.right,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            suffixIcon:
+                                const Icon(Icons.email, color: Colors.grey),
+                            errorText: emailError,
+                          ),
+                          onChanged: _onEmailChanged,
+                        ),
+                        const SizedBox(height: 40),
+
+                        // Reset Button
+                        GestureDetector(
+                          onTap: passwordReset,
+                          child: Container(
+                            height: 55,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xff180A44),
+                                  Color(0xff180A44),
+                                ],
+                              ),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'إعادة تعيين كلمة المرور',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Back to Login prompt
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context); // Go back to login
+                            },
+                            child: const Text(
+                              'العودة إلى تسجيل الدخول',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Colors.white,
+                                fontSize: 17,
+                                color: Colors.black,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Back to Login prompt
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context); // Go back to login
-                          },
-                          child: const Text(
-                            'العودة إلى تسجيل الدخول',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

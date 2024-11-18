@@ -10,6 +10,7 @@ import 'package:daar/screens/notif.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:daar/usprovider/UserProvider.dart';
+import 'package:daar/screens/filterp.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   List<Property> allProperties = [];
   List<Property> recommendedProperties = []; // قائمة للتوصيات
+  List<Property> filteredProperties = [];
+  bool filtersApplied = false; // لحفظ حالة تطبيق الفلاتر
 
   @override
   void initState() {
@@ -69,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       allProperties = properties;
+      filteredProperties = properties; // عند التحميل الأولي
     });
 
     // إحضار آخر 5 عقارات لإضافتها في قائمة التوصيات
@@ -85,6 +89,94 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       recommendedProperties = recentProperties; // حفظ آخر 5 عقارات
     });
+  }
+
+  void _applyFilters(Map<String, dynamic> filters) {
+    final filtered = allProperties.where((property) {
+      // فلاتر السعر
+      if (filters['minPrice'] != null && property.price < filters['minPrice']) {
+        return false;
+      }
+      if (filters['maxPrice'] != null && property.price > filters['maxPrice']) {
+        return false;
+      }
+      // فلاتر المساحة
+      if (filters['minSize'] != null && property.size < filters['minSize']) {
+        return false;
+      }
+      if (filters['maxSize'] != null && property.size > filters['maxSize']) {
+        return false;
+      }
+      // فلاتر المدينة والمنطقة
+      if (filters['selectedCity'] != null &&
+          property.city != filters['selectedCity']) {
+        return false;
+      }
+      if (filters['selectedDistrict'] != null &&
+          property.District != filters['selectedDistrict']) {
+        return false;
+      }
+      // فلاتر الغرف والحمامات
+// فلاتر الغرف
+      if (filters['selectedRoom'] != null) {
+        if (filters['selectedRoom'] == 5) {
+          if (property.numofbed < 5) {
+            return false;
+          }
+        } else if (property.numofbed != filters['selectedRoom']) {
+          return false;
+        }
+      }
+//klkkpkp
+// فلاتر الحمامات
+      if (filters['selectedBath'] != null) {
+        if (filters['selectedBath'] == 5) {
+          if (property.numofbath < 5) {
+            return false;
+          }
+        } else if (property.numofbath != filters['selectedBath']) {
+          return false;
+        }
+      }
+
+// فلاتر غرف المعيشة
+      if (filters['selectedLiving'] != null) {
+        if (filters['selectedLiving'] == 5) {
+          if (property.numoflivin < 5) {
+            return false;
+          }
+        } else if (property.numoflivin != filters['selectedLiving']) {
+          return false;
+        }
+      }
+
+      // فلترة حسب الفئة
+      if (filters['selectedCategory'] != null &&
+          property.category != filters['selectedCategory']) {
+        return false;
+      }
+
+      return true;
+    }).toList();
+
+    setState(() {
+      filteredProperties = filtered;
+      filtersApplied = true;
+    });
+  }
+
+  void _navigateToFilters() async {
+    final filters = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (context) => const FilterPage()),
+    );
+
+    // إذا كانت القيم المسترجعة ليست null، قم بتطبيق التصفية
+    if (filters != null && filters.isNotEmpty) {
+      setState(() {
+        _applyFilters(filters); // تطبيق الفلاتر وتحديث الواجهة
+      });
+    }
   }
 
   @override
@@ -118,6 +210,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: Colors.white),
+            onPressed: _navigateToFilters, // الانتقال إلى صفحة التصفية
+          ),
+        ],
       ),
       backgroundColor: const Color(0xFF180A44),
       body: SingleChildScrollView(
@@ -146,10 +244,20 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 10.0),
               const SearchField(),
               const SizedBox(height: 20.0),
-              recomendList(
-                  "التوصيات", recommendedProperties), // استخدام قائمة التوصيات
+
+              if (!filtersApplied)
+                recomendList("التوصيات", recommendedProperties),
               const SizedBox(height: 40.0),
-              VerticalRecomendList("العقارات", allProperties),
+              // عرض العقارات المفلترة
+              if (filteredProperties.isNotEmpty)
+                VerticalRecomendList("العقارات", filteredProperties),
+              if (filteredProperties.isEmpty)
+                const Center(
+                  child: Text(
+                    'لا توجد نتائج للتصفية المختارة',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ),
             ],
           ),
         ),
