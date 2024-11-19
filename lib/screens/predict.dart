@@ -187,46 +187,50 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
       height: 50,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-            colors: [Color(0xFF180A44), Color(0xFF180A44)]),
+          colors: [Color(0xFF180A44), Color(0xFF180A44)],
+        ),
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: propertyTypes.map((type) {
-          bool isSelected = selectedPropertyType == type;
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedPropertyType = type;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.grey : Colors.transparent,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    type == 'شقة'
-                        ? Icons.apartment
-                        : type == 'فيلا'
-                            ? Icons.house
-                            : Icons.home_work,
-                    color: isSelected ? Colors.black : Colors.white,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    type,
-                    style: TextStyle(
-                        color: isSelected ? Colors.black : Colors.white),
-                  ),
-                ],
+        children: [
+          _buildPropertyTypeButton('شقة', Icons.apartment_rounded),
+          _buildPropertyTypeButton('دور', Icons.stairs_rounded),
+          _buildPropertyTypeButton('فيلا', Icons.villa_rounded),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPropertyTypeButton(String type, IconData icon) {
+    bool isSelected = selectedPropertyType == type;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedPropertyType = type;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.grey : Colors.transparent,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.black : Colors.white,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              type,
+              style: TextStyle(
+                color: isSelected ? Colors.black : Colors.white,
               ),
             ),
-          );
-        }).toList(),
+          ],
+        ),
       ),
     );
   }

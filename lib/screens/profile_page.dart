@@ -178,7 +178,7 @@ class ButtonSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.only(left: 240.0),
+                  padding: const EdgeInsets.only(left: 265.0),
                   child: const Text(
                     'عقاراتي',
                     style: TextStyle(color: Colors.white),
@@ -214,7 +214,7 @@ class ButtonSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.only(left: 240.0),
+                  padding: const EdgeInsets.only(left: 265.0),
                   child: const Text(
                     'المفضلة',
                     style: TextStyle(color: Colors.white),
@@ -250,7 +250,7 @@ class ButtonSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.only(left: 195.0),
+                  padding: const EdgeInsets.only(left: 220.0),
                   child: const Text(
                     'إعدادات الحساب',
                     style: TextStyle(color: Colors.white),
@@ -289,7 +289,7 @@ class ButtonSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.only(left: 210.0),
+                  padding: const EdgeInsets.only(left: 227.0),
                   child: GestureDetector(
                     onTap: () async {
                       await auth.signout();

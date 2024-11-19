@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:daar/screens/home_screen.dart'; // استيراد الصفحة الرئيسية
 
+// إعداد التطبيق وضبط واجهة المستخدم، مع تخصيص شريط الحالة وجعل الصفحة الرئيسية هي صفحة تفاصيل العقار
 void main() {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -14,6 +15,7 @@ void main() {
   runApp(const MyApp());
 }
 
+// التطبيق الرئيسي  MaterialApp لتحديد الإعدادات العامة وصفحة البداية
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -76,44 +78,22 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     'الجـوف',
   ];
 
+  // الواجهة تحتوي على الاتجاهات شرق- غرب- جنوب-شمال
+
   final List<String> directions = ['شمال', 'جنوب', 'شرق', 'غرب'];
   final List<String> selectedDirections = [];
-
-  @override
-  void dispose() {
-    dateController.dispose();
-    priceController.dispose();
-    streetWidthController.dispose();
-    locationLinkController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      setState(() {
-        selectedImage = File(image.path);
-      });
-    }
-  }
-
-  // الواجهة تحتوي على الاتجاهات شرق- غرب- جنوب-شمال
   Widget _buildDirectionsDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         const Padding(
-          padding: EdgeInsets.only(left: 280.0),
+          padding: EdgeInsets.only(left: 288.0),
           child: Row(
             children: [
               Text(
                 'الواجهة',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
-              SizedBox(width: 4),
-              Text('*', style: TextStyle(color: Colors.red)),
             ],
           ),
         ),
@@ -207,7 +187,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 const SizedBox(height: 30),
                 _buildStreetWidthField(),
                 const SizedBox(height: 30),
-                _buildYearBuiltField(context),
+                _buildInputField(context, 'سنة  البناء', Icons.calendar_today),
                 const SizedBox(height: 30),
                 _buildDropdownField('المنطقة', regions, (value) {
                   setState(() {
@@ -244,7 +224,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          // إضافة وظيفة إضافة العقار
+                          // إضافة العقار
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -269,6 +249,96 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           ),
         ),
       ),
+    );
+  }
+
+// دالة لبناء واجهة اختيار نوع العقار
+  Widget _buildPropertyType() {
+    return Column(
+      children: [
+        const Align(
+          alignment: Alignment.topLeft, // تغيير المحاذاة إلى اليسار
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.0), // تعديل الحشوة إلى اليسار
+            child: Text(
+              '*',
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+        ),
+        Container(
+          height: 40,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF180A44),
+                Color(0xFF180A44),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildPropertyTypeButton('شقة', Icons.apartment_rounded),
+              _buildVerticalDivider(),
+              _buildPropertyTypeButton('دور', Icons.stairs_rounded),
+              _buildVerticalDivider(),
+              _buildPropertyTypeButton('فيلا', Icons.villa_rounded)
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+// دالة لإنشاء زر نوع العقار
+  Widget _buildPropertyTypeButton(String label, IconData icon) {
+    bool isSelected = selectedPropertyType == label; // تحقق إذا كان الزر محددًا
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          // تحديث الحالة عند الضغط
+          selectedPropertyType = label; // تعيين النوع المحدد
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Colors.grey
+              : Colors.transparent, // تغيير لون الخلفية عند التحديد
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Row(
+          children: [
+            Icon(icon,
+                color: isSelected
+                    ? Colors.black
+                    : Colors.white), // لون الأيقونة عند التحديد
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.black
+                    : Colors.white, // لون النص عند التحديد
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // دالة لإنشاء فاصل عمودي (Divider)
+  Widget _buildVerticalDivider() {
+    return const VerticalDivider(
+      color: Colors.white, // لون الفاصل
+      thickness: 2, // سمك الفاصل
+      width: 20, // المسافة حول الفاصل
     );
   }
 
@@ -370,30 +440,36 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             textAlign: TextAlign.right,
             textDirection: TextDirection.rtl,
             decoration: InputDecoration(
-              label: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
+              labelText: label, // استخدام labelText لعرض النص التوضيحي
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
               ),
-              border: const OutlineInputBorder(),
+              border: const OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black), // لون الحدود
+              ),
+              enabledBorder: const OutlineInputBorder(
+                borderSide:
+                    BorderSide(color: Colors.black), // لون الحدود عند التمكين
+              ),
+              focusedBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
+                    color:
+                        Color.fromARGB(255, 0, 0, 0)), // لون الحدود عند التركيز
+              ),
               prefixIcon: Icon(icon, color: const Color(0xFF180A44)),
-              contentPadding: const EdgeInsets.symmetric(vertical: 20),
+              contentPadding: const EdgeInsets.symmetric(
+                  vertical: 20, horizontal: 10), // إضافة padding أفقي
             ),
+            controller:
+                TextEditingController(), // استخدام TextEditingController فارغ
           ),
         ),
       ],
     );
   }
 
-  // دالة لبناء صف المساعدة والسعر
+// دالة لبناء صف المساعدة والسعر
   Widget _buildHelpAndPriceRow(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,8 +480,27 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             // زر المساعدة على يسار السعر
             _buildHelpButton(),
             Expanded(
-              child: _buildInputField(context, 'السعر', null,
-                  controller: priceController), // إزالة الأيقونة
+              child: Stack(
+                children: [
+                  _buildPriceFieldWithStar(
+                    context,
+                    'السعر',
+                    null,
+                    controller: priceController,
+                  ),
+                  const Positioned(
+                    left: 5,
+                    top: 0,
+                    child: Text(
+                      '*',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -414,8 +509,28 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-/////////////////////////////////////////////////////////////////////////
-  // دالة لإنشاء زر المساعدة الوحيد
+// دالة لبناء حقل إدخال السعر مع النجمة
+  Widget _buildPriceFieldWithStar(
+    BuildContext context,
+    String label,
+    IconData? icon, {
+    TextEditingController? controller,
+  }) {
+    return TextField(
+      controller: controller,
+
+      decoration: InputDecoration(
+        labelText: label,
+        prefixText: ' ر.س ', // إضافة النص "ر.س" على اليسار
+        prefixStyle:
+            const TextStyle(fontSize: 12, color: Colors.grey), // تنسيق النص
+        border: const OutlineInputBorder(),
+      ),
+      keyboardType: TextInputType.number, // تأكد من أن الحقل يقبل الأرقام
+    );
+  }
+
+// دالة لإنشاء زر المساعدة الوحيد
   Widget _buildHelpButton() {
     return GestureDetector(
       onTap: () {
@@ -445,6 +560,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   }
 
   // دالة لإنشاء حقل الإدخال
+
   Widget _buildInputField(BuildContext context, String label, IconData? icon,
       {TextEditingController? controller}) {
     return Row(
@@ -461,15 +577,14 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
               label: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  const Text('*',
+                      style: TextStyle(color: Colors.red, fontSize: 14)),
                   Text(
                     label,
                     style: const TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        color: Colors.grey, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 8),
-                  const Text('*', style: TextStyle(color: Colors.red)),
                 ],
               ),
             ),
@@ -479,46 +594,75 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  // دالة لإنشاء حقل قائمة منسدلة
   Widget _buildDropdownField(
       String label, List<String> items, ValueChanged<String?> onChanged) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start, // محاذاة العناصر إلى اليسار
       children: [
-        Expanded(
-          child: DropdownButton<String>(
-            isExpanded: true,
-            hint: Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                label,
-                textAlign: TextAlign.right,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end, // محاذاة النص إلى اليمين
+          children: [
+            const Text(
+              '*',
+              style: TextStyle(color: Colors.red, fontSize: 13),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              "اختر $label", // النص فوق الحقل
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Color(0xFF180A44),
               ),
             ),
-            value: label == 'المنطقة'
-                ? selectedRegion
-                : label == 'المدينة'
-                    ? selectedCity
-                    : selectedNeighborhood,
-            icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF180A44)),
-            items: items.map((String item) {
-              return DropdownMenuItem<String>(
-                value: item,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(item),
-                ),
-              );
-            }).toList(),
-            onChanged: onChanged,
-            underline: Container(
-              height: 1,
-              color: const Color(0xFF180A44),
-            ),
-          ),
+          ],
         ),
-        const SizedBox(width: 8),
-        const Text('*', style: TextStyle(color: Colors.red)),
+        const SizedBox(height: 8), // مسافة بين النص والقائمة المنسدلة
+        Stack(
+          alignment: Alignment.centerLeft,
+          children: [
+            DropdownButton<String>(
+              isExpanded: true,
+              hint: const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "",
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              value: label == 'المنطقة'
+                  ? selectedRegion
+                  : label == 'المدينة'
+                      ? selectedCity
+                      : selectedNeighborhood,
+              icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF180A44)),
+              items: items.toSet().toList().map((String item) {
+                return DropdownMenuItem<String>(
+                  value: item,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(item),
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  if (label == 'المنطقة') {
+                    selectedRegion = value;
+                  } else if (label == 'المدينة') {
+                    selectedCity = value;
+                  } else if (label == 'الحي') {
+                    selectedNeighborhood = value;
+                  }
+                });
+              },
+              underline: Container(
+                height: 1,
+                color: const Color(0xFF180A44),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -543,7 +687,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                       style: TextStyle(
                           color: Colors.grey, fontWeight: FontWeight.bold)),
                   SizedBox(width: 10),
-                  Text('*', style: TextStyle(color: Colors.red)),
                 ],
               ),
             ),
@@ -553,30 +696,61 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+  @override
+  void dispose() {
+    dateController.dispose();
+    priceController.dispose();
+    streetWidthController.dispose();
+    locationLinkController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        selectedImage = File(image.path);
+      });
+    }
+  }
+
   // إرفاق صورة
   Widget _buildImagePicker() {
     return Row(
       children: [
+        const SizedBox(width: 8),
         Expanded(
           child: TextField(
             readOnly: true,
             textAlign: TextAlign.right,
             textDirection: TextDirection.rtl,
             decoration: InputDecoration(
-              label: const Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text('    إرفاق صورة ',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey)),
-                ],
+              labelText: 'إرفاق صورة', // استخدام labelText لعرض النص التوضيحي
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
               ),
-              border: const OutlineInputBorder(),
+              border: const OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.black), // لون الحدود
+              ),
+              enabledBorder: const OutlineInputBorder(
+                borderSide:
+                    BorderSide(color: Colors.black), // لون الحدود عند التمكين
+              ),
+              focusedBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
+                    color:
+                        Color.fromARGB(255, 0, 0, 0)), // لون الحدود عند التركيز
+              ),
               prefixIcon: IconButton(
                 icon: const Icon(Icons.attach_file, color: Color(0xFF180A44)),
                 onPressed: _pickImage,
+                padding: EdgeInsets.zero, // إزالة padding من الأيقونة
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 40),
+              contentPadding: const EdgeInsets.symmetric(
+                  vertical: 68, horizontal: 10), // إضافة padding أفقي
             ),
           ),
         ),
@@ -611,122 +785,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
               )
             : const Center(child: Text('لا توجد صورة محددة')),
       ),
-    );
-  }
-
-  // سنة البناء
-  Widget _buildYearBuiltField(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        const Icon(Icons.calendar_today, color: Color(0xFF180A44)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TextField(
-            controller: dateController,
-            textAlign: TextAlign.right,
-            textDirection: TextDirection.rtl,
-            decoration: const InputDecoration(
-              label: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text('سنة البناء',
-                      style: TextStyle(
-                          color: Colors.grey, fontWeight: FontWeight.bold)),
-                  SizedBox(width: 8),
-                  Text('*', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // دالة لبناء واجهة اختيار نوع العقار
-  Widget _buildPropertyType() {
-    return Column(
-      children: [
-        const Align(
-          alignment: Alignment.centerRight,
-          child: Padding(
-            padding: EdgeInsets.only(right: 20.0),
-          ),
-        ),
-        Container(
-          height: 40,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF180A44),
-                Color(0xFF180A44),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildPropertyTypeButton('دور', Icons.house),
-              _buildVerticalDivider(),
-              _buildPropertyTypeButton('فيلا', Icons.villa),
-              _buildVerticalDivider(),
-              _buildPropertyTypeButton('شقة', Icons.apartment),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // دالة لإنشاء زر نوع العقار
-  Widget _buildPropertyTypeButton(String label, IconData icon) {
-    bool isSelected = selectedPropertyType == label; // تحقق إذا كان الزر محددًا
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          // تحديث الحالة عند الضغط
-          selectedPropertyType = label; // تعيين النوع المحدد
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.grey
-              : Colors.transparent, // تغيير لون الخلفية عند التحديد
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Row(
-          children: [
-            Icon(icon,
-                color: isSelected
-                    ? Colors.black
-                    : Colors.white), // لون الأيقونة عند التحديد
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected
-                    ? Colors.black
-                    : Colors.white, // لون النص عند التحديد
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // دالة لإنشاء فاصل عمودي (Divider)
-  Widget _buildVerticalDivider() {
-    return const VerticalDivider(
-      color: Colors.white, // لون الفاصل
-      thickness: 2, // سمك الفاصل
-      width: 20, // المسافة حول الفاصل
     );
   }
 }
