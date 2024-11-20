@@ -93,21 +93,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _applyFilters(Map<String, dynamic> filters) {
     final filtered = allProperties.where((property) {
-      // فلاتر السعر
+      // تطبيق الفلاتر (نفس الكود الذي أرسلته)
       if (filters['minPrice'] != null && property.price < filters['minPrice']) {
         return false;
       }
       if (filters['maxPrice'] != null && property.price > filters['maxPrice']) {
         return false;
       }
-      // فلاتر المساحة
       if (filters['minSize'] != null && property.size < filters['minSize']) {
         return false;
       }
       if (filters['maxSize'] != null && property.size > filters['maxSize']) {
         return false;
       }
-      // فلاتر المدينة والمنطقة
       if (filters['selectedCity'] != null &&
           property.city != filters['selectedCity']) {
         return false;
@@ -116,52 +114,28 @@ class _HomeScreenState extends State<HomeScreen> {
           property.District != filters['selectedDistrict']) {
         return false;
       }
-      // فلاتر الغرف والحمامات
-// فلاتر الغرف
-      if (filters['selectedRoom'] != null) {
-        if (filters['selectedRoom'] == 5) {
-          if (property.numofbed < 5) {
-            return false;
-          }
-        } else if (property.numofbed != filters['selectedRoom']) {
-          return false;
-        }
+      if (filters['selectedRoom'] != null &&
+          property.numofbed != filters['selectedRoom']) {
+        return false;
       }
-//klkkpkp
-// فلاتر الحمامات
-      if (filters['selectedBath'] != null) {
-        if (filters['selectedBath'] == 5) {
-          if (property.numofbath < 5) {
-            return false;
-          }
-        } else if (property.numofbath != filters['selectedBath']) {
-          return false;
-        }
+      if (filters['selectedBath'] != null &&
+          property.numofbath != filters['selectedBath']) {
+        return false;
       }
-
-// فلاتر غرف المعيشة
-      if (filters['selectedLiving'] != null) {
-        if (filters['selectedLiving'] == 5) {
-          if (property.numoflivin < 5) {
-            return false;
-          }
-        } else if (property.numoflivin != filters['selectedLiving']) {
-          return false;
-        }
+      if (filters['selectedLiving'] != null &&
+          property.numoflivin != filters['selectedLiving']) {
+        return false;
       }
-
-      // فلترة حسب الفئة
       if (filters['selectedCategory'] != null &&
           property.category != filters['selectedCategory']) {
         return false;
       }
-
       return true;
     }).toList();
 
     setState(() {
       filteredProperties = filtered;
-      filtersApplied = true;
+      filtersApplied = true; // تم تطبيق الفلاتر
     });
   }
 
@@ -171,10 +145,13 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (context) => const FilterPage()),
     );
 
-    // إذا كانت القيم المسترجعة ليست null، قم بتطبيق التصفية
     if (filters != null && filters.isNotEmpty) {
       setState(() {
-        _applyFilters(filters); // تطبيق الفلاتر وتحديث الواجهة
+        _applyFilters(filters); // تطبيق الفلاتر
+      });
+    } else {
+      setState(() {
+        filtersApplied = false; // إزالة الفلاتر
       });
     }
   }
@@ -210,12 +187,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.white),
-            onPressed: _navigateToFilters, // الانتقال إلى صفحة التصفية
-          ),
-        ],
       ),
       backgroundColor: const Color(0xFF180A44),
       body: SingleChildScrollView(
@@ -242,7 +213,41 @@ class _HomeScreenState extends State<HomeScreen> {
                 textAlign: TextAlign.right,
               ),
               const SizedBox(height: 10.0),
-              const SearchField(),
+
+              // وضع SearchField بجانب أيقونة الفلتر داخل Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none, // لتمكين النقطة الحمراء أن تخرج
+                    children: [
+                      IconButton(
+                        onPressed: _navigateToFilters,
+                        icon: const Icon(
+                          Icons.filter_alt,
+                          color: Color(0xFF180A44),
+                        ),
+                      ),
+                      // إضافة النقطة الحمراء إذا تم تطبيق الفلاتر
+                      if (filtersApplied)
+                        Positioned(
+                          top: 9,
+                          right: 9,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(
+                                  255, 243, 95, 95), // اللون الأحمر للنقطة
+                              shape: BoxShape.circle, // جعلها دائرة
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const Expanded(child: SearchField()), // حقل البحث
+                ],
+              ),
               const SizedBox(height: 20.0),
 
               if (!filtersApplied)
@@ -276,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.add), label: "إضافة عقار"),
           BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.person), label: "الحساب الشخصي"),
+              icon: Icon(CupertinoIcons.person), label: "الملف الشخصي"),
         ],
       ),
     );
