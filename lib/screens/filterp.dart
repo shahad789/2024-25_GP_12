@@ -3,6 +3,7 @@ import 'package:daar/widgets/select_category.dart';
 import 'package:daar/widgets/roomsSelection.dart';
 import 'package:daar/screens/home_screen.dart';
 import '../service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FilterPage extends StatefulWidget {
   const FilterPage({super.key});
@@ -13,7 +14,7 @@ class FilterPage extends StatefulWidget {
 
 class _FilterPageState extends State<FilterPage> {
   // Define controllers for text fields
-  String? selectedCategory;
+  String selectedCategory = ''; // Store the selected category
   final TextEditingController minPriceController = TextEditingController();
   final TextEditingController maxPriceController = TextEditingController();
   final TextEditingController minSizeController = TextEditingController();
@@ -34,6 +35,46 @@ class _FilterPageState extends State<FilterPage> {
   List<String> cities = ['الرياض', 'جدة', 'الدمام', 'الخبر'];
   List<String> neighborhoods = [];
 
+  Future<void> loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      selectedCategory = prefs.getString('selectedCategory') ??
+          ''; // Default to an empty string if no value
+      minPriceController.text = prefs.getString('minPrice') ?? '';
+      maxPriceController.text = prefs.getString('maxPrice') ?? '';
+      minSizeController.text = prefs.getString('minSize') ?? '';
+      maxSizeController.text = prefs.getString('maxSize') ?? '';
+      selectedRoom = prefs.getInt('selectedRoom');
+      selectedBath = prefs.getInt('selectedBath');
+      selectedLivin = prefs.getInt('selectedLiving');
+    });
+  }
+
+  Future<void> savePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        'selectedCategory', selectedCategory); // Save selected category
+    await prefs.setString('minPrice', minPriceController.text);
+    await prefs.setString('maxPrice', maxPriceController.text);
+    await prefs.setString('minSize', minSizeController.text);
+    await prefs.setString('maxSize', maxSizeController.text);
+    await prefs.setInt('selectedRoom', selectedRoom ?? -1);
+    await prefs.setInt('selectedBath', selectedBath ?? -1);
+    await prefs.setInt('selectedLiving', selectedLivin ?? -1);
+  }
+
+  Future<void> clearPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('selectedCategory');
+    await prefs.remove('minPrice');
+    await prefs.remove('maxPrice');
+    await prefs.remove('minSize');
+    await prefs.remove('maxSize');
+    await prefs.remove('selectedRoom');
+    await prefs.remove('selectedBath');
+    await prefs.remove('selectedLiving');
+  }
+
   // Load districts from API
   Future<void> loadDistricts() async {
     if (selectedCity == null) return;
@@ -52,6 +93,12 @@ class _FilterPageState extends State<FilterPage> {
         SnackBar(content: Text('فشل تحميل الأحياء')),
       );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadPreferences(); // Load the selected category when the page is initialized
   }
 
   @override
@@ -94,11 +141,16 @@ class _FilterPageState extends State<FilterPage> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               const SizedBox(height: 20.0),
-              SelectCategory(onCategorySelected: (category) {
-                setState(() {
-                  selectedCategory = category;
-                });
-              }),
+              SelectCategory(
+                selectedCategory:
+                    selectedCategory, // Pass selectedCategory directly
+                onCategorySelected: (category) async {
+                  setState(() {
+                    selectedCategory = category; // Update the selected category
+                  });
+                  await savePreferences(); // Save the updated category
+                },
+              ),
               const SizedBox(height: 20.0),
               const Text(
                 'نطاق السعر',
@@ -260,78 +312,88 @@ class _FilterPageState extends State<FilterPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ElevatedButton(
-            onPressed: () {
-              _validatePriceRange();
-              _validateSizeRange();
+          onPressed: () async {
+            await savePreferences(); // حفظ التفضيلات
 
-              if (isMinPriceError ||
-                  isMaxPriceError ||
-                  isMinSizeError ||
-                  isMaxSizeError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('يرجى التحقق من القيم المدخلة')),
-                );
-                return;
-              }
+            _validatePriceRange();
+            _validateSizeRange();
 
-              final filters = {
-                'minPrice': double.tryParse(minPriceController.text),
-                'maxPrice': double.tryParse(maxPriceController.text),
-                'minSize': double.tryParse(minSizeController.text),
-                'maxSize': double.tryParse(maxSizeController.text),
-                'selectedCategory': selectedCategory,
-                'selectedCity': selectedCity,
-                'selectedDistrict': selectedDistrict,
-                'selectedRoom': selectedRoom,
-                'selectedBath': selectedBath,
-                'selectedLiving': selectedLivin,
-              };
-              Navigator.pop(context, filters);
-            },
-            child: const Text(
-              'تصفية',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.white, // لون النص باللون الأبيض
-              ),
+            if (isMinPriceError ||
+                isMaxPriceError ||
+                isMinSizeError ||
+                isMaxSizeError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('يرجى التحقق من القيم المدخلة')),
+              );
+              return;
+            }
+
+            final filters = {
+              'minPrice': double.tryParse(minPriceController.text),
+              'maxPrice': double.tryParse(maxPriceController.text),
+              'minSize': double.tryParse(minSizeController.text),
+              'maxSize': double.tryParse(maxSizeController.text),
+              'selectedCategory': selectedCategory,
+              'selectedCity': selectedCity,
+              'selectedDistrict': selectedDistrict,
+              'selectedRoom': selectedRoom,
+              'selectedBath': selectedBath,
+              'selectedLiving': selectedLivin,
+            };
+
+            Navigator.pop(context, filters);
+          },
+          child: const Text(
+            'تصفية',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.white, // لون النص باللون الأبيض
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF180A44), // لون الزر
-              minimumSize:
-                  const Size(150, 45), // تغيير الحجم إلى عرض 200 وارتفاع 50
-            )),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF180A44), // لون الزر
+            minimumSize:
+                const Size(150, 45), // تغيير الحجم إلى عرض 150 وارتفاع 45
+          ),
+        ),
         const SizedBox(width: 20.0),
         ElevatedButton(
-            onPressed: () {
-              setState(() {
-                minPriceController.clear();
-                maxPriceController.clear();
-                minSizeController.clear();
-                maxSizeController.clear();
-                selectedRoom = null;
-                selectedBath = null;
-                selectedLivin = null;
-                selectedCity = null;
-                selectedDistrict = null;
-                isMinPriceError = false;
-                isMaxPriceError = false;
-                isMinSizeError = false;
-                isMaxSizeError = false;
-              });
-            },
-            child: const Text(
-              'مسح',
-              style: TextStyle(
-                fontSize: 18,
-                color: const Color(0xFF180A44), // لون النص باللون الأبيض
+          onPressed: () async {
+            // إعادة تعيين القيم
+            await clearPreferences(); // مسح التفضيلات
+            setState(() {
+              minPriceController.clear();
+              maxPriceController.clear();
+              minSizeController.clear();
+              maxSizeController.clear();
+              selectedRoom = null;
+              selectedBath = null;
+              selectedLivin = null;
+              selectedCity = null;
+              selectedDistrict = null;
+            });
+
+            // العودة إلى الصفحة الرئيسية
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
               ),
+            );
+          },
+          child: const Text(
+            'مسح',
+            style: TextStyle(
+              fontSize: 18,
+              color: Color(0xFF180A44), // لون النص
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  const Color.fromARGB(255, 255, 255, 255), // لون الزر
-              minimumSize:
-                  const Size(150, 45), // تغيير الحجم إلى عرض 200 وارتفاع 50
-            )),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFFFFFF), // لون الزر الأبيض
+            minimumSize:
+                const Size(150, 45), // تغيير الحجم إلى عرض 150 وارتفاع 45
+          ),
+        ),
       ],
     );
   }
