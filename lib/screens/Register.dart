@@ -251,8 +251,6 @@ class _RegScreenState extends State<RegScreen> {
                                   color: Color(0xff180A44),
                                 ),
                               ),
-                              SizedBox(width: 4),
-                              Text('*', style: TextStyle(color: Colors.red)),
                             ],
                           ),
                         ),
@@ -298,8 +296,6 @@ class _RegScreenState extends State<RegScreen> {
                                   color: Color(0xff180A44),
                                 ),
                               ),
-                              SizedBox(width: 4),
-                              Text('*', style: TextStyle(color: Colors.red)),
                             ],
                           ),
                         ),
@@ -484,18 +480,15 @@ class _RegScreenState extends State<RegScreen> {
   }
 
   goToHome(BuildContext context) => Navigator.pushNamed(context, 'home');
-
   signup() async {
-    // Check if all fields are filled
+    // Check if all required fields are filled
     if (fullNameController.text.trim().isEmpty ||
         emailController.text.trim().isEmpty ||
         phoneController.text.trim().isEmpty ||
         passwordController.text.trim().isEmpty ||
-        confirmPasswordController.text.trim().isEmpty ||
-        selectedDate == null ||
-        selectedGender == null) {
-      _showSnackBar(
-          context, 'يرجى ملء جميع الحقول'); // "Please fill all fields"
+        confirmPasswordController.text.trim().isEmpty) {
+      _showSnackBar(context,
+          'يرجى ملء جميع الحقول المطلوبة'); // "Please fill all required fields"
       return;
     }
 
@@ -531,19 +524,19 @@ class _RegScreenState extends State<RegScreen> {
         final userEmail = user.email;
 
         // Add user details to Firestore
-        final userDoc =
-            await FirebaseFirestore.instance.collection("user").add({
+        await FirebaseFirestore.instance.collection("user").add({
           "Name": fullNameController.text.trim(),
           "Email": userEmail,
           "Phone": phoneController.text.trim(),
-          "Gender": selectedGender,
-          "DateOfBirth": selectedDate.toString(),
+          "Gender": selectedGender ?? "", // Optional field
+          "DateOfBirth":
+              selectedDate?.toIso8601String() ?? "", // Optional field
         });
 
         // Save user data to UserProvider
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.setUser(
-          userDoc.id, // Document ID from Firestore
+          user.uid, // User ID from Firebase Auth
           fullNameController.text.trim(), // User's full name
           userEmail!, // User's email
         );
