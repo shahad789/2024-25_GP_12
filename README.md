@@ -23,7 +23,8 @@ Web hosting: Github<br>
 UX/UI: Figma<br>
 Web-Based environment: JupyterLab</p>
 <H4>3.Lanunching instruction</H4>
-<p>1. Clone the Repository:  
+<p>
+1. Clone the Repository:  
    Clone the project repository to your local machine.  
 
 2. Setup Backend:  
