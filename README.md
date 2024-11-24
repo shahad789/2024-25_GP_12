@@ -23,8 +23,7 @@ Web hosting: Github<br>
 UX/UI: Figma<br>
 Web-Based environment: JupyterLab</p>
 <H4>3.Lanunching instruction</H4>
-<pre>
-1. Clone the Repository:  
+<p>1. Clone the Repository:  
    Clone the project repository to your local machine.  
 
 2. Setup Backend:  
@@ -43,4 +42,4 @@ Web-Based environment: JupyterLab</p>
    - Run the project:  
      - Option 1: Click "Run > Start Debugging" in your IDE.  
      - Option 2: Use the terminal command: `flutter run`.  
-</pre>
+</p>
