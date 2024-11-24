@@ -45,8 +45,9 @@ class _EditPageState extends State<EditPage> {
             .get();
 
         if (userData.exists) {
+          var data = userData.data() as Map<String, dynamic>;
+
           setState(() {
-            var data = userData.data() as Map<String, dynamic>;
             nameController.text = data['Name'] ?? '';
             phoneController.text = data['Phone'] ?? '';
             emailController.text = data['Email'] ?? '';
@@ -54,19 +55,28 @@ class _EditPageState extends State<EditPage> {
                 ? DateFormat('yyyy-MM-dd')
                     .format(DateTime.parse(data['DateOfBirth']))
                 : '';
-            selectedGender = data['Gender'] ?? '';
             selectedDate = data['DateOfBirth'] != null
-                ? DateTime.parse(data['DateOfBirth'])
+                ? DateTime.tryParse(data['DateOfBirth'])
                 : null;
+            selectedGender = data['Gender']; // Allow null here
             _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _isLoading =
+                false; // Stop loading even if the document does not exist
           });
         }
       } catch (e) {
         print('Error fetching user data: $e');
         setState(() {
-          _isLoading = false;
+          _isLoading = false; // Stop loading on error
         });
       }
+    } else {
+      setState(() {
+        _isLoading = false; // Stop loading if userDocId is null
+      });
     }
   }
 
@@ -328,12 +338,13 @@ class _EditPageState extends State<EditPage> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                border:
-                    Border(bottom: BorderSide(color: Colors.black, width: 1.0)),
+                border: Border(
+                  bottom: BorderSide(color: Colors.black, width: 1.0),
+                ),
               ),
               child: DropdownButtonFormField<String>(
                 value: selectedGender,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -342,7 +353,8 @@ class _EditPageState extends State<EditPage> {
                   return DropdownMenuItem<String>(
                     value: gender,
                     child: Align(
-                      alignment: Alignment.centerRight,
+                      alignment:
+                          Alignment.centerRight, // Align the text to the right
                       child: Text(
                         gender,
                         textAlign: TextAlign.right,
@@ -355,7 +367,15 @@ class _EditPageState extends State<EditPage> {
                     selectedGender = value;
                   });
                 },
-                icon: SizedBox.shrink(),
+                hint: Align(
+                  alignment:
+                      Alignment.centerRight, // Align the hint text to the right
+                  child: const Text(
+                    'حدد الجنس',
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                icon: const SizedBox.shrink(), // Removes default dropdown icon
               ),
             ),
           ),
@@ -381,7 +401,7 @@ class _EditPageState extends State<EditPage> {
         }
       },
       child: AbsorbPointer(
-        child: _buildInputField(context, 'Date of Birth', Icons.cake,
+        child: _buildInputField(context, 'تاريخ الميلاد', Icons.cake,
             controller: DOBController),
       ),
     );
