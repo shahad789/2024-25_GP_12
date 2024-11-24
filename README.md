@@ -11,7 +11,7 @@ Facilitate contact between users and registered property owners.<br>
 Allow users to list their properties with AI-generated price estimations.<br>
 Enable updates to property details and statuses.<br>
 Implement notifications for property updates.<br>
-Provide property suggestions based on user search history.
+Provide property suggestions based on user viewed property.
 
 </p>
 <H4>2.Technology</H4>
