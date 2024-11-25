@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Property> recommendedProperties = []; // قائمة للتوصيات
   List<Property> filteredProperties = [];
   bool filtersApplied = false; // لحفظ حالة تطبيق الفلاتر
+  Map<String, dynamic> currentFilters = {};
 
   @override
   void initState() {
@@ -168,16 +169,22 @@ class _HomeScreenState extends State<HomeScreen> {
   void _navigateToFilters() async {
     final filters = await Navigator.push<Map<String, dynamic>>(
       context,
-      MaterialPageRoute(builder: (context) => const FilterPage()),
+      MaterialPageRoute(
+        builder: (context) => FilterPage(
+          selectedFilters: currentFilters, // Pass all selected filters
+        ),
+      ),
     );
 
     if (filters != null && filters.isNotEmpty) {
       setState(() {
-        _applyFilters(filters); // تطبيق الفلاتر
+        currentFilters = filters; // Update all filters
+        _applyFilters(filters); // Apply them to properties
       });
     } else {
       setState(() {
-        filtersApplied = false; // إزالة الفلاتر
+        filtersApplied = false; // Clear filter state
+        currentFilters = {}; // Reset all filters
       });
     }
   }
