@@ -12,6 +12,7 @@ class VerticalRecomendList extends StatelessWidget {
   final String? title;
   final List<Property> items;
 
+//interface
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -46,7 +47,7 @@ class VerticalRecomendList extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => DetailsBro(items[index].id),
-                          //builder: (context) => HomeScreen(),
+                          //give details id of specific item to show
                         ),
                       );
                     }),

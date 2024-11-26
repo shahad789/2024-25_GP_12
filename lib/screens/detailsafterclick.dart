@@ -18,16 +18,18 @@ class DetailsBro extends StatefulWidget {
 }
 
 class _DetailsBroState extends State<DetailsBro> {
-  int _currentImageIndex = 0;
+  int _currentImageIndex = 0; //since multiple images
   bool isLiked = false; // liked or no
   Map<String, dynamic>? propertyData;
 
+//initially
   @override
   void initState() {
     super.initState();
     _fetchPropertyDetails();
   }
 
+//method of fetching from database
   void _fetchPropertyDetails() async {
     final docSnapshot = await FirebaseFirestore.instance
         .collection('Property')
@@ -41,12 +43,14 @@ class _DetailsBroState extends State<DetailsBro> {
     }
   }
 
+//method for like
   void _toggleLike() {
     setState(() {
       isLiked = !isLiked;
     });
   }
 
+//interface
   @override
   Widget build(BuildContext context) {
     // Only format price if propertyData is loaded
@@ -67,6 +71,7 @@ class _DetailsBroState extends State<DetailsBro> {
           ),
           centerTitle: true,
         ),
+
         body: const Center(
             child: CircularProgressIndicator()), // Loading indicator
       );
@@ -161,6 +166,8 @@ class _DetailsBroState extends State<DetailsBro> {
                       ),
                     ),
                     const SizedBox(width: 8),
+
+                    //location
                     Expanded(
                       child: Align(
                         alignment: Alignment.centerRight,
@@ -185,6 +192,7 @@ class _DetailsBroState extends State<DetailsBro> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   children: [
+                    //1
                     Row(
                       children: [
                         Expanded(
@@ -199,6 +207,8 @@ class _DetailsBroState extends State<DetailsBro> {
                       ],
                     ),
                     const SizedBox(height: 10),
+
+                    //2
                     Row(
                       children: [
                         Expanded(
@@ -213,6 +223,8 @@ class _DetailsBroState extends State<DetailsBro> {
                       ],
                     ),
                     const SizedBox(height: 10),
+
+                    //3
                     Row(
                       children: [
                         Expanded(
@@ -227,6 +239,8 @@ class _DetailsBroState extends State<DetailsBro> {
                       ],
                     ),
                     const SizedBox(height: 10),
+
+                    //4
                     Row(
                       children: [
                         Expanded(
@@ -254,8 +268,7 @@ class _DetailsBroState extends State<DetailsBro> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment
-                      .end, // Aligns column content to the right
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     const Text(
                       'تفاصيل',
@@ -268,8 +281,7 @@ class _DetailsBroState extends State<DetailsBro> {
                     ),
                     const SizedBox(height: 10),
                     Align(
-                      alignment: Alignment
-                          .centerRight, // Ensures text aligns to the right
+                      alignment: Alignment.centerRight,
                       child: Text(
                         propertyData!['details']!,
                         style: const TextStyle(
@@ -282,7 +294,6 @@ class _DetailsBroState extends State<DetailsBro> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
 
               // Contact Details

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // comma of readibility package 3ashan price
+import 'package:intl/intl.dart'; // comma of readibility package for price
 import 'package:daar/screens/home_screen.dart';
 
 // ignore: must_be_immutable
@@ -16,7 +16,7 @@ class _ItemCardState extends State<ItemCard> {
   @override
   Widget build(BuildContext context) {
     final priceFormatted = NumberFormat('#,##0', 'en_US')
-        .format(widget.item.price); //this for comma 3ashan readability
+        .format(widget.item.price); //this for comma readability
 
     return Container(
       width: 300.0,
@@ -34,6 +34,7 @@ class _ItemCardState extends State<ItemCard> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              //image
               Container(
                 width: double.infinity,
                 height: 150.0,
@@ -41,17 +42,19 @@ class _ItemCardState extends State<ItemCard> {
                   borderRadius: BorderRadius.circular(8.0),
                   color: Colors.grey.shade200,
                   image: DecorationImage(
-                    image: NetworkImage(widget.item.images!.first),
+                    image: NetworkImage(widget.item.images.first),
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
               const SizedBox(height: 10.0),
+
+              //type
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    widget.item.category!,
+                    widget.item.category,
                     style: const TextStyle(
                       color: Color.fromARGB(255, 0, 0, 0),
                       fontSize: 20.0,
@@ -69,6 +72,8 @@ class _ItemCardState extends State<ItemCard> {
                 ],
               ),
               const SizedBox(height: 8.0),
+
+              //rooms
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -125,6 +130,8 @@ class _ItemCardState extends State<ItemCard> {
                 ],
               ),
               const SizedBox(height: 8.0),
+
+              //location
               Row(
                 children: [
                   const Icon(
@@ -143,6 +150,8 @@ class _ItemCardState extends State<ItemCard> {
                 ],
               ),
               const SizedBox(height: 20.0),
+
+              //price
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

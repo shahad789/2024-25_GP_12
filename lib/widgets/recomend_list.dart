@@ -5,10 +5,9 @@ import 'package:daar/widgets/house-cardrec.dart';
 import 'package:daar/screens/home_screen.dart';
 import 'package:daar/screens/detailsafterclick.dart';
 
-/// Widget of recomend list box nafso
-
 // ignore: must_be_immutable
 class recomendList extends StatefulWidget {
+  //title recomend and itsms property recomnd
   recomendList(this.title, this.items, {super.key});
   String? title;
   final List<Property> items;
@@ -17,6 +16,7 @@ class recomendList extends StatefulWidget {
   State<recomendList> createState() => _recomendListState();
 }
 
+//interface of recomend list box
 class _recomendListState extends State<recomendList> {
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class _recomendListState extends State<recomendList> {
             child: Directionality(
               textDirection: TextDirection.rtl,
               child: ListView.builder(
-                scrollDirection: Axis.horizontal, // عرض العناصر بشكل أفقي
+                scrollDirection: Axis.horizontal, //print horizental
                 itemCount: widget.items.length,
                 itemBuilder: (context, index) {
                   return Row(
@@ -53,13 +53,13 @@ class _recomendListState extends State<recomendList> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            //  builder: (context) => DetailsBro(items[index]),
+                            //send to details id
                             builder: (context) =>
                                 DetailsBro(widget.items[index].id),
                           ),
                         );
                       }),
-                      const SizedBox(width: 12.0), // مسافة بين العناصر
+                      const SizedBox(width: 12.0),
                     ],
                   );
                 },
@@ -71,13 +71,3 @@ class _recomendListState extends State<recomendList> {
     );
   }
 }
-              // Button on the left
-              /* TextButton(
-                onPressed: () {},
-                child: const Text(
-                  "عرض الجميع",
-                  style: TextStyle(
-                      color: Color(0xFF180A44)), // Custom color for "See All"
-                ),
-              ),*/
-              // Title on the right

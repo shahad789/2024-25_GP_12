@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:daar/screens/edit_profile.dart'; // استيراد صفحة EditPage
-import 'package:daar/screens/owen.dart'; // استيراد صفحة OwenScreen
-import 'package:daar/screens/notif.dart'; // استيراد صفحة notif.dart
-import 'package:daar/screens/fav.dart'; // استيراد صفحة fav.dart
-import 'package:daar/screens/WelcomeScreen.dart'; // استيراد صفحة WelcomeScreen
+import 'package:daar/screens/edit_profile.dart';
+import 'package:daar/screens/owen.dart';
+import 'package:daar/screens/notif.dart';
+import 'package:daar/screens/fav.dart';
+import 'package:daar/screens/WelcomeScreen.dart';
 import 'package:daar/screens/Add1.dart';
 import 'package:daar/screens/predict.dart';
-import 'package:daar/screens/home_screen.dart'; // استيراد الصفحة الرئيسية
+import 'package:daar/screens/home_screen.dart';
 import 'package:daar/screens/authentication.dart';
 import 'package:provider/provider.dart';
 import 'package:daar/usprovider/UserProvider.dart';
@@ -20,7 +20,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  int _currentIndex = 3; // الفهرس الافتراضي للصفحة الحالية
+  int _currentIndex = 3; //current in 3
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +54,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
+
       backgroundColor: const Color(0xFF180A44),
       body: Container(
         decoration: const BoxDecoration(
@@ -68,6 +69,8 @@ class _ProfilePageState extends State<ProfilePage> {
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
+
+              //img and name of user
               children: [
                 SizedBox(height: 23),
                 CircleAvatar(
@@ -84,13 +87,15 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 SizedBox(height: 30),
-                ButtonSection(),
+                ButtonSection(), //4 buttons
                 SizedBox(height: 240),
               ],
             ),
           ),
         ),
       ),
+
+      //buttom nav
       bottomNavigationBar: BottomNavigationBar(
         elevation: 0.0,
         backgroundColor: Colors.white,
@@ -111,9 +116,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  //change navigation
   void _onItemTapped(int index) {
     setState(() {
-      _currentIndex = index; // تحديث الفهرس الحالي
+      _currentIndex = index;
     });
 
     if (index == 3) {
@@ -145,6 +151,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
+//method of showing 4 buttons
 class ButtonSection extends StatelessWidget {
   const ButtonSection({super.key});
 
@@ -153,7 +160,7 @@ class ButtonSection extends StatelessWidget {
     final auth = Authentication();
     return Column(
       children: [
-        // زر عقاراتي
+        //my property
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -189,7 +196,8 @@ class ButtonSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 15),
-        // زر المفضلة
+
+        //favorite
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -225,7 +233,8 @@ class ButtonSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 15),
-        // زر إعدادات الحساب
+
+        //profile setting
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -261,7 +270,8 @@ class ButtonSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 15),
-        // زر تسجيل خروج
+
+        //log out
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -271,8 +281,6 @@ class ButtonSection extends StatelessWidget {
                 context,
                 MaterialPageRoute(builder: (context) => const WelcomeScreen()),
               );
-
-              // أضف هنا وظيفة تسجيل الخروج إذا لزم الأمر
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF180A44),

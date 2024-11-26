@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart'; // Import the intl package for date formatting
-import 'package:daar/screens/pass.dart'; // Import your PassPage here
-import 'package:daar/usprovider/UserProvider.dart'; // Import your UserProvider here
+import 'package:daar/usprovider/UserProvider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class EditPage extends StatefulWidget {
@@ -21,19 +20,21 @@ class _EditPageState extends State<EditPage> {
 
   String? phoneError;
   String? emailError;
-  String? selectedGender; // default value
+  String? selectedGender;
   DateTime? selectedDate;
 
-  final List<String> genders = ['ذكر', 'أنثى']; // List of genders in Arabic
+  final List<String> genders = ['ذكر', 'أنثى'];
 
   bool _isLoading = true;
 
+//initially call
   @override
   void initState() {
     super.initState();
     _loadUserData();
   }
 
+//method to load data
   Future<void> _loadUserData() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
@@ -47,6 +48,7 @@ class _EditPageState extends State<EditPage> {
         if (userData.exists) {
           var data = userData.data() as Map<String, dynamic>;
 
+          //set data from database
           setState(() {
             nameController.text = data['Name'] ?? '';
             phoneController.text = data['Phone'] ?? '';
@@ -63,31 +65,30 @@ class _EditPageState extends State<EditPage> {
           });
         } else {
           setState(() {
-            _isLoading =
-                false; // Stop loading even if the document does not exist
+            _isLoading = false;
           });
         }
       } catch (e) {
         print('Error fetching user data: $e');
         setState(() {
-          _isLoading = false; // Stop loading on error
+          _isLoading = false;
         });
       }
     } else {
       setState(() {
-        _isLoading = false; // Stop loading if userDocId is null
+        _isLoading = false;
       });
     }
   }
 
+//validation
   bool _validateEmail(String email) {
     String pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
     return RegExp(pattern).hasMatch(email);
   }
 
   bool _validatePhone(String phone) {
-    String pattern =
-        r'^05\d{8}$'; // Ensures phone starts with 05 and is 10 digits
+    String pattern = r'^05\d{8}$';
     return RegExp(pattern).hasMatch(phone);
   }
 
@@ -107,6 +108,7 @@ class _EditPageState extends State<EditPage> {
     });
   }
 
+//password reset
   Future<void> passwordReset() async {
     // Check if the email field is empty or invalid before attempting reset
     if (emailController.text.trim().isEmpty) {
@@ -158,6 +160,7 @@ class _EditPageState extends State<EditPage> {
     }
   }
 
+//interface
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
@@ -292,6 +295,7 @@ class _EditPageState extends State<EditPage> {
     );
   }
 
+//interface method
   Widget _buildInputField(BuildContext context, String label, IconData icon,
       {TextEditingController? controller,
       String? errorText,
@@ -310,7 +314,7 @@ class _EditPageState extends State<EditPage> {
                 child: TextField(
                   controller: controller,
                   textAlign: TextAlign.right,
-                  keyboardType: inputType, // Set the appropriate keyboard type
+                  keyboardType: inputType, // keybaurd type
                   decoration: InputDecoration(
                     hintText: label,
                     errorText: errorText,
@@ -325,6 +329,7 @@ class _EditPageState extends State<EditPage> {
     );
   }
 
+//interface gender
   Widget _buildGenderDropdown() {
     return Container(
       padding: const EdgeInsets.only(right: 10.0),
@@ -353,8 +358,7 @@ class _EditPageState extends State<EditPage> {
                   return DropdownMenuItem<String>(
                     value: gender,
                     child: Align(
-                      alignment:
-                          Alignment.centerRight, // Align the text to the right
+                      alignment: Alignment.centerRight,
                       child: Text(
                         gender,
                         textAlign: TextAlign.right,
@@ -368,14 +372,13 @@ class _EditPageState extends State<EditPage> {
                   });
                 },
                 hint: Align(
-                  alignment:
-                      Alignment.centerRight, // Align the hint text to the right
+                  alignment: Alignment.centerRight,
                   child: const Text(
                     'حدد الجنس',
                     textAlign: TextAlign.right,
                   ),
                 ),
-                icon: const SizedBox.shrink(), // Removes default dropdown icon
+                icon: const SizedBox.shrink(),
               ),
             ),
           ),
@@ -384,6 +387,7 @@ class _EditPageState extends State<EditPage> {
     );
   }
 
+//birth
   Widget _buildDateOfBirthPicker(BuildContext context) {
     return GestureDetector(
       onTap: () async {
@@ -407,6 +411,7 @@ class _EditPageState extends State<EditPage> {
     );
   }
 
+//upon change save to database
   void _saveChanges() async {
     if (phoneError != null || emailError != null) {
       return;

@@ -25,7 +25,7 @@ class _SearchFieldState extends State<SearchField> {
           icon: const Icon(CupertinoIcons.search,
               color: Color.fromARGB(255, 42, 19, 117)),
           onPressed: () {
-            // يمكن إضافة منطق البحث هنا
+            //function if activated
           },
         ),
       ),

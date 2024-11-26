@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   static const String baseUrl = 'http://192.168.0.62:6000';
 
+//get district based on city
   static Future<List<String>> getDistricts(String city) async {
     final response = await http.get(Uri.parse('$baseUrl/districts?city=$city'));
 
@@ -15,6 +16,7 @@ class ApiService {
     }
   }
 
+//for price valuation
   static Future<double> predictPrice({
     required String city,
     required String district,

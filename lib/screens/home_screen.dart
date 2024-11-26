@@ -20,19 +20,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-  List<Property> allProperties = [];
-  List<Property> recommendedProperties = []; // قائمة للتوصيات
-  List<Property> filteredProperties = [];
-  bool filtersApplied = false; // لحفظ حالة تطبيق الفلاتر
-  Map<String, dynamic> currentFilters = {};
+  int _currentIndex = 0; //for navigation
+  List<Property> allProperties = []; //all properties list
+  List<Property> recommendedProperties = []; //recomend list
+  List<Property> filteredProperties = []; //filtered list
+  bool filtersApplied = false; //saved status of filter initially false
+  Map<String, dynamic> currentFilters =
+      {}; //to help with saved filter to go back to
 
+//calling this initially
   @override
   void initState() {
     super.initState();
     _fetchProperties();
   }
 
+//upon navigating to other page method
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
@@ -60,55 +63,58 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+//this method we call up intially to list all property in home from database
   Future<void> _fetchProperties() async {
-    // إحضار جميع العقارات
+    //retrieve
     final propertySnapshot = await FirebaseFirestore.instance
         .collection('Property')
         .limit(100)
         .get();
-
+    //make into list
     final properties = propertySnapshot.docs
         .map((doc) => Property.fromFirestore(doc))
         .toList();
-
+    //put to use
     setState(() {
       allProperties = properties;
-      filteredProperties = properties; // عند التحميل الأولي
+      filteredProperties = properties; //initially have it
     });
 
-    // إحضار آخر 5 عقارات لإضافتها في قائمة التوصيات
+    //fetch recent for recomend list top 5
     final recentPropertiesSnapshot = await FirebaseFirestore.instance
         .collection('Property')
-        .orderBy('Date_list', descending: true) // ترتيب حسب تاريخ الإضافة
-        .limit(5) // جلب آخر 5 عقارات
+        .orderBy('Date_list', descending: true) //based on recent added
+        .limit(5)
         .get();
-
+    //make into list
     final recentProperties = recentPropertiesSnapshot.docs
         .map((doc) => Property.fromFirestore(doc))
         .toList();
-
+    //put to use
     setState(() {
-      recommendedProperties = recentProperties; // حفظ آخر 5 عقارات
+      recommendedProperties = recentProperties;
     });
   }
 
+  //for filter method show properties based on user requiermenets
   void _applyFilters(Map<String, dynamic> filters) {
+    //make list based on what is filtered
     final filtered = allProperties.where((property) {
-      // فلاتر السعر
+      //price
       if (filters['minPrice'] != null && property.price < filters['minPrice']) {
         return false;
       }
       if (filters['maxPrice'] != null && property.price > filters['maxPrice']) {
         return false;
       }
-      // فلاتر المساحة
+      //size
       if (filters['minSize'] != null && property.size < filters['minSize']) {
         return false;
       }
       if (filters['maxSize'] != null && property.size > filters['maxSize']) {
         return false;
       }
-      // فلاتر المدينة والمنطقة
+      //city, district
       if (filters['selectedCity'] != null &&
           property.city != filters['selectedCity']) {
         return false;
@@ -117,8 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
           property.District != filters['selectedDistrict']) {
         return false;
       }
-      // فلاتر الغرف والحمامات
-// فلاتر الغرف
+
+      //number of bedroom
       if (filters['selectedRoom'] != null) {
         if (filters['selectedRoom'] == 5) {
           if (property.numofbed < 5) {
@@ -128,8 +134,8 @@ class _HomeScreenState extends State<HomeScreen> {
           return false;
         }
       }
-//klkkpkp
-// فلاتر الحمامات
+
+      //number of bathroom
       if (filters['selectedBath'] != null) {
         if (filters['selectedBath'] == 5) {
           if (property.numofbath < 5) {
@@ -140,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
 
-// فلاتر غرف المعيشة
+      //number of livingroom
       if (filters['selectedLiving'] != null) {
         if (filters['selectedLiving'] == 5) {
           if (property.numoflivin < 5) {
@@ -151,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
 
-      // فلترة حسب الفئة
+      //type
       if (filters['selectedCategory'] != null &&
           property.category != filters['selectedCategory']) {
         return false;
@@ -160,12 +166,14 @@ class _HomeScreenState extends State<HomeScreen> {
       return true;
     }).toList();
 
+    //state now is filtered
     setState(() {
       filteredProperties = filtered;
       filtersApplied = true;
     });
   }
 
+  //when going to filter page send current filter in case user want to see or continue on it
   void _navigateToFilters() async {
     final filters = await Navigator.push<Map<String, dynamic>>(
       context,
@@ -189,8 +197,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  //interface
   @override
   Widget build(BuildContext context) {
+    //to help print user hello
     final userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
       appBar: AppBar(
@@ -221,6 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+
       backgroundColor: const Color(0xFF180A44),
       body: SingleChildScrollView(
         child: Container(
@@ -247,12 +258,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 10.0),
 
-              // وضع SearchField بجانب أيقونة الفلتر داخل Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Stack(
-                    clipBehavior: Clip.none, // لتمكين النقطة الحمراء أن تخرج
+                    clipBehavior: Clip.none, //for red dot
                     children: [
                       IconButton(
                         onPressed: _navigateToFilters,
@@ -261,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Color(0xFF180A44),
                         ),
                       ),
-                      // إضافة النقطة الحمراء إذا تم تطبيق الفلاتر
+                      // show red dot if did
                       if (filtersApplied)
                         Positioned(
                           top: 9,
@@ -302,6 +312,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+
+      //navigation down
       bottomNavigationBar: BottomNavigationBar(
         elevation: 0.0,
         backgroundColor: Colors.white,
@@ -323,6 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+//information
 class Property {
   final String id;
   final List<String> images;
@@ -334,7 +347,7 @@ class Property {
   final int numofbath;
   final int numoflivin;
   final int numofbed;
-  final Timestamp Date_list; // حقل لتاريخ الإضافة
+  final Timestamp Date_list;
 
   Property({
     required this.id,
