@@ -296,6 +296,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                 ),
+              const SizedBox(
+                  height: 4000.0), // ترك مسافة إضافية أسفل المحتوى          ],
             ],
           ),
         ),

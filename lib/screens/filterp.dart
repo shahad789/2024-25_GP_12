@@ -1,6 +1,3 @@
-// ignore_for_file: unused_import, library_private_types_in_public_api
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:daar/widgets/select_category.dart';
 import 'package:daar/widgets/roomsSelection.dart';
@@ -19,25 +16,28 @@ class FilterPage extends StatefulWidget {
 }
 
 class _FilterPageState extends State<FilterPage> {
+  // Define controllers for text fields
   String? selectedCategory; // الفئة التي تم اختيارها
   final TextEditingController minPriceController = TextEditingController();
   final TextEditingController maxPriceController = TextEditingController();
   final TextEditingController minSizeController = TextEditingController();
   final TextEditingController maxSizeController = TextEditingController();
 
-  late int? selectedRoom;
+  // Tracking what was selected
+  int? selectedRoom;
   int? selectedBath;
   int? selectedLivin;
   String? selectedCity;
   String? selectedDistrict;
-  double? minPrice;
-  double? maxPrice;
-  double? minSize;
-  double? maxSize;
+  bool isMinPriceError = false;
+  bool isMaxPriceError = false;
+  bool isMinSizeError = false;
+  bool isMaxSizeError = false;
 
   List<String> cities = ['الرياض', 'جدة', 'الدمام', 'الخبر'];
-  List<String> neighborhoods = [];
+  List<String> neighborhoods = []; // سيتم تحميل الأحياء بناءً على المدينة
 
+  // دالة لتحميل الأحياء من الـ API
   Future<void> loadDistricts() async {
     if (selectedCity == null) return;
 
@@ -45,11 +45,15 @@ class _FilterPageState extends State<FilterPage> {
       List<String> districts = await ApiService.getDistricts(selectedCity!);
       setState(() {
         neighborhoods = districts;
+        // إذا كان الحي المختار موجود في الأحياء الجديدة، قم بتعيينه.
+        if (districts.contains(selectedDistrict)) {
+          selectedDistrict = selectedDistrict;
+        } else {
+          selectedDistrict = null; // إعادة تعيين الحي إذا لم يكن موجودًا
+        }
       });
     } catch (e) {
-      if (kDebugMode) {
-        print("فشل تحميل الأحياء: $e");
-      }
+      print("فشل تحميل الأحياء: $e");
     }
   }
 
@@ -67,6 +71,7 @@ class _FilterPageState extends State<FilterPage> {
     selectedLivin = filters['selectedLiving'];
     selectedCity = filters['selectedCity'];
     selectedDistrict = filters['selectedDistrict'];
+    loadDistricts(); // تأكد من استدعاء loadDistricts هنا
   }
 
   @override
@@ -123,30 +128,84 @@ class _FilterPageState extends State<FilterPage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: minPriceController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'الحد الأدنى (ر.س)',
-                        border: OutlineInputBorder(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: minPriceController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'الحد الأدنى (ر.س)',
+                            border: const OutlineInputBorder(),
+                            errorText: isMinPriceError ? '' : null,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: minPriceController.text.isNotEmpty
+                                    ? const Color.fromARGB(
+                                        255, 0, 0, 0) // غامق عند التركيز
+                                    : Colors.black, // لون الحافة العادية
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.black, // لون الحافة العادية
+                              ),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            _validatePriceRange();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: maxPriceController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'الحد الأقصى (ر.س)',
+                            border: const OutlineInputBorder(),
+                            errorText: isMaxPriceError ? ' ' : null,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: maxPriceController.text.isNotEmpty
+                                    ? const Color.fromARGB(
+                                        255, 0, 0, 0) // غامق عند التركيز
+                                    : Colors.black, // لون الحافة العادية
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.black, // لون الحافة العادية
+                              ),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            _validatePriceRange();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isMinPriceError || isMaxPriceError)
+                    Transform.translate(
+                      offset: Offset(0, -5),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 0),
+                        child: Text(
+                          'يجب أن يكون الحد الأقصى أكبر من الحد الأدني',
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 183, 28, 17),
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: maxPriceController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'الحد الأقصى (ر.س)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 30.0),
@@ -160,7 +219,7 @@ class _FilterPageState extends State<FilterPage> {
               ),
               const SizedBox(height: 20.0),
               const Text(
-                'عدد الحمامات',
+                'عدد دورات المياة',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               roomsSelection(
@@ -182,30 +241,84 @@ class _FilterPageState extends State<FilterPage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: minSizeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'الحد الأدنى (م²)',
-                        border: OutlineInputBorder(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: minSizeController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'الحد الأدنى (م²)',
+                            border: const OutlineInputBorder(),
+                            errorText: isMinSizeError ? '' : null,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: minSizeController.text.isNotEmpty
+                                    ? const Color.fromARGB(
+                                        255, 0, 0, 0) // غامق عند التركيز
+                                    : Colors.black, // لون الحافة العادية
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.black, // لون الحافة العادية
+                              ),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            _validateSizeRange();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: maxSizeController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'الحد الأقصى (م²)',
+                            border: const OutlineInputBorder(),
+                            errorText: isMaxSizeError ? ' ' : null,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: maxSizeController.text.isNotEmpty
+                                    ? const Color.fromARGB(
+                                        255, 0, 0, 0) // غامق عند التركيز
+                                    : Colors.black, // لون الحافة العادية
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.black, // لون الحافة العادية
+                              ),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            _validateSizeRange();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isMinSizeError || isMaxSizeError)
+                    Transform.translate(
+                      offset: Offset(0, -5),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 0),
+                        child: Text(
+                          'يجب أن يكون الحد الأقصى أكبر من الحد الأدني',
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 183, 28, 17),
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: maxSizeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'الحد الأقصى (م²)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 20.0),
@@ -213,6 +326,7 @@ class _FilterPageState extends State<FilterPage> {
                 'المدن',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
+// City Dropdown
               DropdownButton<String>(
                 isExpanded: true,
                 value: selectedCity,
@@ -226,9 +340,10 @@ class _FilterPageState extends State<FilterPage> {
                 onChanged: (value) {
                   setState(() {
                     selectedCity = value;
-                    selectedDistrict = null;
+                    selectedDistrict = null; // Reset district
+                    neighborhoods = []; // Clear neighborhoods
                   });
-                  loadDistricts();
+                  loadDistricts(); // Load neighborhoods for the selected city
                 },
               ),
               const SizedBox(height: 20.0),
@@ -236,72 +351,96 @@ class _FilterPageState extends State<FilterPage> {
                 'الأحياء',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              if (neighborhoods.isNotEmpty)
-                DropdownButton<String>(
-                  isExpanded: true,
-                  value: selectedDistrict,
-                  hint: const Text('اختر الحي'),
-                  items: neighborhoods
-                      .map((district) => DropdownMenuItem(
-                            value: district,
-                            child: Text(district),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedDistrict = value;
-                    });
-                  },
-                )
-              else
-                const Center(child: CircularProgressIndicator()),
+// District Dropdown
+              DropdownButton<String>(
+                isExpanded: true,
+                value: (selectedDistrict != null &&
+                        neighborhoods.contains(selectedDistrict))
+                    ? selectedDistrict
+                    : null,
+                hint: const Text('اختر الحي'),
+                items: neighborhoods
+                    .toSet() // Ensure there are no duplicates in neighborhoods
+                    .map((district) => DropdownMenuItem(
+                          value: district,
+                          child: Text(district),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedDistrict = value;
+                  });
+                },
+              ),
               const SizedBox(height: 20.0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      final filters = {
-                        'minPrice': double.tryParse(minPriceController.text),
-                        'maxPrice': double.tryParse(maxPriceController.text),
-                        'minSize': double.tryParse(minSizeController.text),
-                        'maxSize': double.tryParse(maxSizeController.text),
-                        'selectedCategory': selectedCategory,
-                        'selectedCity': selectedCity,
-                        'selectedDistrict': selectedDistrict,
-                        'selectedRoom': selectedRoom,
-                        'selectedBath': selectedBath,
-                        'selectedLiving': selectedLivin,
-                      };
-                      Navigator.pop(context, filters);
-                    },
-                    child: const Text('تصفية'),
-                  ),
+                      onPressed: () {
+                        final filters = {
+                          'minPrice': double.tryParse(minPriceController.text),
+                          'maxPrice': double.tryParse(maxPriceController.text),
+                          'minSize': double.tryParse(minSizeController.text),
+                          'maxSize': double.tryParse(maxSizeController.text),
+                          'selectedCategory': selectedCategory,
+                          'selectedCity': selectedCity,
+                          'selectedDistrict': selectedDistrict,
+                          'selectedRoom': selectedRoom,
+                          'selectedBath': selectedBath,
+                          'selectedLiving': selectedLivin,
+                        };
+                        Navigator.pop(context, filters);
+                      },
+                      child: const Text(
+                        'تصفية',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white, // لون النص باللون الأبيض
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF180A44), // لون الزر
+                        minimumSize: const Size(
+                            150, 45), // تغيير الحجم إلى عرض 200 وارتفاع 50
+                      )),
                   const SizedBox(width: 20.0),
                   ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        // إعادة القيم إلى الأصلية
-                        minPriceController.clear();
-                        maxPriceController.clear();
-                        minSizeController.clear();
-                        maxSizeController.clear();
-                        selectedRoom = null;
-                        selectedBath = null;
-                        selectedLivin = null;
-                        selectedCity = null;
-                        selectedDistrict = null;
-                      });
-                      // العودة إلى الصفحة الرئيسية مع إظهار المحتوى
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
+                      onPressed: () {
+                        setState(() {
+                          // إعادة القيم إلى الأصلية
+                          minPriceController.clear();
+                          maxPriceController.clear();
+                          minSizeController.clear();
+                          maxSizeController.clear();
+                          selectedRoom = null;
+                          selectedBath = null;
+                          selectedLivin = null;
+                          selectedCity = null;
+                          selectedDistrict = null;
+                        });
+                        // العودة إلى الصفحة الرئيسية مع إظهار المحتوى
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'مسح',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Color.fromARGB(
+                              255, 35, 12, 87), // لون النص باللون الأبيض
                         ),
-                      );
-                    },
-                    child: const Text('مسح'),
-                  ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                            255, 255, 255, 255), // لون الزر
+                        minimumSize: const Size(
+                            150, 45), // تغيير الحجم إلى عرض 200 وارتفاع 50
+                      )),
                 ],
               ),
             ],
@@ -318,5 +457,33 @@ class _FilterPageState extends State<FilterPage> {
     minSizeController.dispose();
     maxSizeController.dispose();
     super.dispose();
+  }
+
+  void _validatePriceRange() {
+    setState(() {
+      isMinPriceError = double.tryParse(minPriceController.text) != null &&
+          double.tryParse(maxPriceController.text) != null &&
+          double.tryParse(minPriceController.text)! >=
+              double.tryParse(maxPriceController.text)!;
+
+      isMaxPriceError = double.tryParse(minPriceController.text) != null &&
+          double.tryParse(maxPriceController.text) != null &&
+          double.tryParse(minPriceController.text)! >=
+              double.tryParse(maxPriceController.text)!;
+    });
+  }
+
+  void _validateSizeRange() {
+    setState(() {
+      isMinSizeError = double.tryParse(minSizeController.text) != null &&
+          double.tryParse(maxSizeController.text) != null &&
+          double.tryParse(minSizeController.text)! >=
+              double.tryParse(maxSizeController.text)!;
+
+      isMaxSizeError = double.tryParse(minSizeController.text) != null &&
+          double.tryParse(maxSizeController.text) != null &&
+          double.tryParse(minSizeController.text)! >=
+              double.tryParse(maxSizeController.text)!;
+    });
   }
 }

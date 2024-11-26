@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.255.186:6000';
+  static const String baseUrl = 'http://192.168.0.62:6000';
 
   static Future<List<String>> getDistricts(String city) async {
     final response = await http.get(Uri.parse('$baseUrl/districts?city=$city'));
