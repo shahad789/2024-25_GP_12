@@ -29,8 +29,7 @@ class VerticalRecomendList extends StatelessWidget {
           ),
           const SizedBox(height: 12.0),
           ListView.builder(
-            physics:
-                const NeverScrollableScrollPhysics(), // Disable scrolling for parent
+            physics: const NeverScrollableScrollPhysics(),
             shrinkWrap:
                 true, // Allow ListView to take height based on its children
             itemCount: items.length,
@@ -39,13 +38,12 @@ class VerticalRecomendList extends StatelessWidget {
                 children: [
                   ItemCard(
                     items[index],
-                    () {}, // هنا يتم استخدام دالة فارغة للنقر
+                    () {},
                     (item) {
-                      // يمكنك إضافة منطق إضافة / إزالة العنصر من المفضلة هنا
-                      // على سبيل المثال، يمكنك استخدام حالتك الخاصة للمفضلات أو بيانات أخرى
+                      //logic
                     },
                   ),
-                  const SizedBox(height: 12.0), // Add space between items
+                  const SizedBox(height: 12.0),
                 ],
               );
             },
