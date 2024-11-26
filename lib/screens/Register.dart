@@ -211,6 +211,7 @@ class _RegScreenState extends State<RegScreen> {
                         const SizedBox(height: 15),
 
                         // Phone Number Label
+
                         const Padding(
                           padding: EdgeInsets.only(left: 250.0),
                           child: Row(
@@ -232,6 +233,8 @@ class _RegScreenState extends State<RegScreen> {
                           textAlign: TextAlign.right,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
+                            suffixIcon: Icon(Icons.phone,
+                                color: Colors.grey), // Added phone icon here
                             errorText: phoneError,
                           ),
                           onChanged: _onPhoneChanged,
