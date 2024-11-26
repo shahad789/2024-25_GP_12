@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Property> recommendedProperties = []; // قائمة للتوصيات
   List<Property> filteredProperties = [];
   bool filtersApplied = false; // لحفظ حالة تطبيق الفلاتر
+  Map<String, dynamic> currentFilters = {};
 
   @override
   void initState() {
@@ -93,19 +94,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _applyFilters(Map<String, dynamic> filters) {
     final filtered = allProperties.where((property) {
-      // تطبيق الفلاتر (نفس الكود الذي أرسلته)
+      // فلاتر السعر
       if (filters['minPrice'] != null && property.price < filters['minPrice']) {
         return false;
       }
       if (filters['maxPrice'] != null && property.price > filters['maxPrice']) {
         return false;
       }
+      // فلاتر المساحة
       if (filters['minSize'] != null && property.size < filters['minSize']) {
         return false;
       }
       if (filters['maxSize'] != null && property.size > filters['maxSize']) {
         return false;
       }
+      // فلاتر المدينة والمنطقة
       if (filters['selectedCity'] != null &&
           property.city != filters['selectedCity']) {
         return false;
@@ -114,44 +117,74 @@ class _HomeScreenState extends State<HomeScreen> {
           property.District != filters['selectedDistrict']) {
         return false;
       }
-      if (filters['selectedRoom'] != null &&
-          property.numofbed != filters['selectedRoom']) {
-        return false;
+      // فلاتر الغرف والحمامات
+// فلاتر الغرف
+      if (filters['selectedRoom'] != null) {
+        if (filters['selectedRoom'] == 5) {
+          if (property.numofbed < 5) {
+            return false;
+          }
+        } else if (property.numofbed != filters['selectedRoom']) {
+          return false;
+        }
       }
-      if (filters['selectedBath'] != null &&
-          property.numofbath != filters['selectedBath']) {
-        return false;
+//klkkpkp
+// فلاتر الحمامات
+      if (filters['selectedBath'] != null) {
+        if (filters['selectedBath'] == 5) {
+          if (property.numofbath < 5) {
+            return false;
+          }
+        } else if (property.numofbath != filters['selectedBath']) {
+          return false;
+        }
       }
-      if (filters['selectedLiving'] != null &&
-          property.numoflivin != filters['selectedLiving']) {
-        return false;
+
+// فلاتر غرف المعيشة
+      if (filters['selectedLiving'] != null) {
+        if (filters['selectedLiving'] == 5) {
+          if (property.numoflivin < 5) {
+            return false;
+          }
+        } else if (property.numoflivin != filters['selectedLiving']) {
+          return false;
+        }
       }
+
+      // فلترة حسب الفئة
       if (filters['selectedCategory'] != null &&
           property.category != filters['selectedCategory']) {
         return false;
       }
+
       return true;
     }).toList();
 
     setState(() {
       filteredProperties = filtered;
-      filtersApplied = true; // تم تطبيق الفلاتر
+      filtersApplied = true;
     });
   }
 
   void _navigateToFilters() async {
     final filters = await Navigator.push<Map<String, dynamic>>(
       context,
-      MaterialPageRoute(builder: (context) => const FilterPage()),
+      MaterialPageRoute(
+        builder: (context) => FilterPage(
+          selectedFilters: currentFilters, // Pass all selected filters
+        ),
+      ),
     );
 
     if (filters != null && filters.isNotEmpty) {
       setState(() {
-        _applyFilters(filters); // تطبيق الفلاتر
+        currentFilters = filters; // Update all filters
+        _applyFilters(filters); // Apply them to properties
       });
     } else {
       setState(() {
-        filtersApplied = false; // إزالة الفلاتر
+        filtersApplied = false; // Clear filter state
+        currentFilters = {}; // Reset all filters
       });
     }
   }
@@ -263,6 +296,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                 ),
+              const SizedBox(
+                  height: 4000.0), // ترك مسافة إضافية أسفل المحتوى          ],
             ],
           ),
         ),

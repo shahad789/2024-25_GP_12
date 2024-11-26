@@ -527,7 +527,8 @@ class _RegScreenState extends State<RegScreen> {
         final userEmail = user.email;
 
         // Add user details to Firestore
-        await FirebaseFirestore.instance.collection("user").add({
+        final userDoc =
+            await FirebaseFirestore.instance.collection("user").add({
           "Name": fullNameController.text.trim(),
           "Email": userEmail,
           "Phone": phoneController.text.trim(),
@@ -539,7 +540,7 @@ class _RegScreenState extends State<RegScreen> {
         // Save user data to UserProvider
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.setUser(
-          user.uid, // User ID from Firebase Auth
+          userDoc.id,
           fullNameController.text.trim(), // User's full name
           userEmail!, // User's email
         );

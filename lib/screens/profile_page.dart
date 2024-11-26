@@ -29,9 +29,8 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0.0,
-        backgroundColor: const Color(0xFF180A44),
-        toolbarHeight: 60.0,
-        centerTitle: true,
+        backgroundColor: const Color(0xFF180a44),
+        toolbarHeight: 70.0,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -47,13 +46,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Colors.white,
               ),
             ),
-            const SizedBox(width: 10),
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Image.asset(
-                'assets/images/Logo.png',
-                height: 25.0,
-              ),
+            Image.asset(
+              'assets/images/logow.png',
+              height: 25.0,
+              color: const Color.fromARGB(255, 255, 255, 255),
             ),
           ],
         ),
@@ -178,7 +174,7 @@ class ButtonSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.only(left: 265.0),
+                  padding: const EdgeInsets.only(left: 240.0),
                   child: const Text(
                     'عقاراتي',
                     style: TextStyle(color: Colors.white),
@@ -214,7 +210,7 @@ class ButtonSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.only(left: 265.0),
+                  padding: const EdgeInsets.only(left: 240.0),
                   child: const Text(
                     'المفضلة',
                     style: TextStyle(color: Colors.white),
@@ -250,7 +246,7 @@ class ButtonSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.only(left: 220.0),
+                  padding: const EdgeInsets.only(left: 195.0),
                   child: const Text(
                     'إعدادات الحساب',
                     style: TextStyle(color: Colors.white),
@@ -289,7 +285,7 @@ class ButtonSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.only(left: 227.0),
+                  padding: const EdgeInsets.only(left: 210.0),
                   child: GestureDetector(
                     onTap: () async {
                       await auth.signout();
