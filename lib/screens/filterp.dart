@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:daar/widgets/select_category.dart';
 import 'package:daar/widgets/roomsSelection.dart';
-import 'package:daar/widgets/citydrop.dart';
-import 'package:daar/widgets/districtdrop.dart';
 import 'package:daar/screens/home_screen.dart';
 import '../service/api_service.dart';
 
