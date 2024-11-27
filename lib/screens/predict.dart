@@ -183,22 +183,36 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   }
 
   Widget _buildPropertyType() {
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF180A44), Color(0xFF180A44)],
+    return Column(
+      children: [
+        const Align(
+          alignment: Alignment.topLeft, // تغيير المحاذاة إلى اليسار
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.0), // تعديل الحشوة إلى اليسار
+            child: Text(
+              '*',
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
         ),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildPropertyTypeButton('شقة', Icons.apartment_rounded),
-          _buildPropertyTypeButton('دور', Icons.stairs_rounded),
-          _buildPropertyTypeButton('فيلا', Icons.villa_rounded),
-        ],
-      ),
+        Container(
+          height: 50,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF180A44), Color(0xFF180A44)],
+            ),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildPropertyTypeButton('شقة', Icons.apartment_rounded),
+              _buildPropertyTypeButton('دور', Icons.stairs_rounded),
+              _buildPropertyTypeButton('فيلا', Icons.villa_rounded),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -241,16 +255,16 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
       controller: controller,
       textAlign: TextAlign.right,
       decoration: InputDecoration(
-        label: Align(
-          alignment: Alignment.centerRight, // Align the label to the right
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+        label: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            const Text('*', style: TextStyle(color: Colors.red, fontSize: 14)),
+            Text(
+              label,
+              style: const TextStyle(
+                  color: Colors.grey, fontWeight: FontWeight.bold),
             ),
-          ),
+          ],
         ),
         prefixIcon: Icon(icon, color: const Color(0xFF180A44)),
         contentPadding:
@@ -266,44 +280,74 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     String? dropdownValue =
         (items.contains(selectedNeighborhood)) ? selectedNeighborhood : null;
 
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-      ),
-      isExpanded: true,
-      hint: Align(
-        alignment: Alignment.centerRight,
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.right, // Use TextAlign.right instead
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start, // Align elements to the left
+      children: [
+        Row(
+          mainAxisAlignment:
+              MainAxisAlignment.end, // Align label text to the right
+          children: [
+            const Text(
+              '*',
+              style: TextStyle(color: Colors.red, fontSize: 13),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              "اختر $label", // Label text
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Color(0xFF180A44),
+              ),
+            ),
+          ],
         ),
-      ),
-      value: label == 'المدينة' ? selectedCity : dropdownValue,
-      items: items.map((item) {
-        return DropdownMenuItem(
-          value: item,
-          child: Align(
+        const SizedBox(height: 8), // Space between the label and dropdown
+        DropdownButtonFormField<String>(
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+          ),
+          isExpanded: true,
+          hint: Align(
             alignment: Alignment.centerRight,
             child: Text(
-              item,
-              textAlign: TextAlign.right, // Use TextAlign.right instead
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.right,
             ),
           ),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          selectedNeighborhood = value;
-        });
-        onChanged(value);
-      },
-      dropdownColor: Colors.white,
-      icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF180A44)),
+          value: label == 'المدينة' ? selectedCity : dropdownValue,
+          items: items.map((item) {
+            return DropdownMenuItem(
+              value: item,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  item,
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              if (label == 'المدينة') {
+                selectedCity = value;
+              } else {
+                selectedNeighborhood = value;
+              }
+            });
+            onChanged(value);
+          },
+          dropdownColor: Colors.white,
+          icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF180A44)),
+        ),
+      ],
     );
   }
 
