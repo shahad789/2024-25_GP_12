@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:daar/widgets/select_category.dart';
-import 'package:daar/widgets/roomsSelection.dart';
 import 'package:daar/screens/home_screen.dart';
+import 'package:daar/widgets/roomsSelection.dart';
+import 'package:daar/widgets/select_category.dart';
+import 'package:flutter/material.dart';
+
 import '../service/api_service.dart';
 
 class FilterPage extends StatefulWidget {
@@ -15,7 +16,7 @@ class FilterPage extends StatefulWidget {
 
 class _FilterPageState extends State<FilterPage> {
   // Define controllers for text fields
-  String? selectedCategory; // الفئة التي تم اختيارها
+  String? selectedCategory;
   final TextEditingController minPriceController = TextEditingController();
   final TextEditingController maxPriceController = TextEditingController();
   final TextEditingController minSizeController = TextEditingController();
@@ -33,9 +34,9 @@ class _FilterPageState extends State<FilterPage> {
   bool isMaxSizeError = false;
 
   List<String> cities = ['الرياض', 'جدة', 'الدمام', 'الخبر'];
-  List<String> neighborhoods = []; // سيتم تحميل الأحياء بناءً على المدينة
+  List<String> neighborhoods = [];
 
-  // دالة لتحميل الأحياء من الـ API
+  // to load district using API
   Future<void> loadDistricts() async {
     if (selectedCity == null) return;
 
@@ -43,11 +44,10 @@ class _FilterPageState extends State<FilterPage> {
       List<String> districts = await ApiService.getDistricts(selectedCity!);
       setState(() {
         neighborhoods = districts;
-        // إذا كان الحي المختار موجود في الأحياء الجديدة، قم بتعيينه.
         if (districts.contains(selectedDistrict)) {
           selectedDistrict = selectedDistrict;
         } else {
-          selectedDistrict = null; // إعادة تعيين الحي إذا لم يكن موجودًا
+          selectedDistrict = null;
         }
       });
     } catch (e) {
@@ -69,7 +69,7 @@ class _FilterPageState extends State<FilterPage> {
     selectedLivin = filters['selectedLiving'];
     selectedCity = filters['selectedCity'];
     selectedDistrict = filters['selectedDistrict'];
-    loadDistricts(); // تأكد من استدعاء loadDistricts هنا
+    loadDistricts(); //here loadDistricts
   }
 
   @override
@@ -143,14 +143,13 @@ class _FilterPageState extends State<FilterPage> {
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: minPriceController.text.isNotEmpty
-                                    ? const Color.fromARGB(
-                                        255, 0, 0, 0) // غامق عند التركيز
-                                    : Colors.black, // لون الحافة العادية
+                                    ? const Color.fromARGB(255, 0, 0, 0)
+                                    : Colors.black,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Colors.black, // لون الحافة العادية
+                                color: Colors.black,
                               ),
                             ),
                           ),
@@ -171,14 +170,13 @@ class _FilterPageState extends State<FilterPage> {
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: maxPriceController.text.isNotEmpty
-                                    ? const Color.fromARGB(
-                                        255, 0, 0, 0) // غامق عند التركيز
-                                    : Colors.black, // لون الحافة العادية
+                                    ? const Color.fromARGB(255, 0, 0, 0)
+                                    : Colors.black,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Colors.black, // لون الحافة العادية
+                                color: Colors.black,
                               ),
                             ),
                           ),
@@ -256,14 +254,13 @@ class _FilterPageState extends State<FilterPage> {
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: minSizeController.text.isNotEmpty
-                                    ? const Color.fromARGB(
-                                        255, 0, 0, 0) // غامق عند التركيز
-                                    : Colors.black, // لون الحافة العادية
+                                    ? const Color.fromARGB(255, 0, 0, 0)
+                                    : Colors.black,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Colors.black, // لون الحافة العادية
+                                color: Colors.black,
                               ),
                             ),
                           ),
@@ -284,14 +281,13 @@ class _FilterPageState extends State<FilterPage> {
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: maxSizeController.text.isNotEmpty
-                                    ? const Color.fromARGB(
-                                        255, 0, 0, 0) // غامق عند التركيز
-                                    : Colors.black, // لون الحافة العادية
+                                    ? const Color.fromARGB(255, 0, 0, 0)
+                                    : Colors.black,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: Colors.black, // لون الحافة العادية
+                                color: Colors.black,
                               ),
                             ),
                           ),
@@ -324,7 +320,7 @@ class _FilterPageState extends State<FilterPage> {
                 'المدن',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-// City Dropdown
+              // City Dropdown
               DropdownButton<String>(
                 isExpanded: true,
                 value: selectedCity,
@@ -349,7 +345,7 @@ class _FilterPageState extends State<FilterPage> {
                 'الأحياء',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-// District Dropdown
+              // District Dropdown
               DropdownButton<String>(
                 isExpanded: true,
                 value: (selectedDistrict != null &&
@@ -394,19 +390,17 @@ class _FilterPageState extends State<FilterPage> {
                         'تصفية',
                         style: TextStyle(
                           fontSize: 18,
-                          color: Colors.white, // لون النص باللون الأبيض
+                          color: Colors.white,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF180A44), // لون الزر
-                        minimumSize: const Size(
-                            150, 45), // تغيير الحجم إلى عرض 200 وارتفاع 50
+                        backgroundColor: const Color(0xFF180A44),
+                        minimumSize: const Size(150, 45),
                       )),
                   const SizedBox(width: 20.0),
                   ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          // إعادة القيم إلى الأصلية
                           minPriceController.clear();
                           maxPriceController.clear();
                           minSizeController.clear();
@@ -417,7 +411,6 @@ class _FilterPageState extends State<FilterPage> {
                           selectedCity = null;
                           selectedDistrict = null;
                         });
-                        // العودة إلى الصفحة الرئيسية مع إظهار المحتوى
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
@@ -429,15 +422,13 @@ class _FilterPageState extends State<FilterPage> {
                         'مسح',
                         style: TextStyle(
                           fontSize: 18,
-                          color: Color.fromARGB(
-                              255, 35, 12, 87), // لون النص باللون الأبيض
+                          color: Color.fromARGB(255, 35, 12, 87),
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                            255, 255, 255, 255), // لون الزر
-                        minimumSize: const Size(
-                            150, 45), // تغيير الحجم إلى عرض 200 وارتفاع 50
+                        backgroundColor:
+                            const Color.fromARGB(255, 255, 255, 255),
+                        minimumSize: const Size(150, 45),
                       )),
                 ],
               ),

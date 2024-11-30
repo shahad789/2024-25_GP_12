@@ -1,8 +1,7 @@
 import 'package:daar/models/item_model.dart';
-import 'package:flutter/material.dart';
 import 'package:daar/screens/edite.dart';
+import 'package:flutter/material.dart';
 
-// ignore: must_be_immutable
 class ItemCard extends StatefulWidget {
   const ItemCard(this.item, this.onTap, {super.key});
   final Item item;
@@ -164,23 +163,20 @@ class _ItemCardState extends State<ItemCard> {
                 const SizedBox(height: 8.0),
                 // Displaying the advertisement date and views
                 Container(
-                  padding:
-                      const EdgeInsets.all(5.0), // تضيف مساحة داخلية حول النص
+                  padding: const EdgeInsets.all(5.0),
                   decoration: BoxDecoration(
                     color: const Color.fromARGB(255, 102, 165, 105)
-                        .withOpacity(0.6), // اللون الأخضر مع شفافية بنسبة 50%
-                    borderRadius:
-                        BorderRadius.circular(8.0), // تضيف حواف دائرية
+                        .withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: Text(
                     'متاح',
                     style: TextStyle(
-                      color: Colors
-                          .white, // اللون داخل النص (يمكن تغييره حسب رغبتك)
+                      color: Colors.white,
                     ),
                   ),
                 ),
-                const SizedBox(height: 4.0), // إضافة مسافة تحت النص
+                const SizedBox(height: 4.0),
 
                 Text(
                   'تاريخ الإعلان: ${widget.item.adDate ?? 'غير متوفر'}',
@@ -197,8 +193,7 @@ class _ItemCardState extends State<ItemCard> {
                       color: Colors.black54,
                       size: 20.0,
                     ),
-                    const SizedBox(
-                        width: 5.0), // إضافة مسافة بين الأيقونة والنص
+                    const SizedBox(width: 5.0),
                     Text(
                       '${widget.item.views ?? 0}',
                       style: const TextStyle(
@@ -231,7 +226,7 @@ class _ItemCardState extends State<ItemCard> {
                     const SizedBox(width: 8.0),
                     TextButton(
                       onPressed: () {
-                        // Add your delete logic here
+                        // here we will add delete logic here
                       },
                       child: const Text(
                         'حذف',

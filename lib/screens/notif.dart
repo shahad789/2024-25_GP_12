@@ -1,5 +1,3 @@
-// ignore_for_file: use_super_parameters, deprecated_member_use
-
 import 'package:flutter/material.dart';
 
 class NotifPage extends StatelessWidget {
@@ -9,7 +7,7 @@ class NotifPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        return true; // السماح بالرجوع
+        return true;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -17,7 +15,7 @@ class NotifPage extends StatelessWidget {
           elevation: 0.0,
           backgroundColor: const Color(0xFF180A44),
           toolbarHeight: 70.0,
-          centerTitle: true, // This ensures the title is centered
+          centerTitle: true,
           title: const Text(
             'الاشعارات',
             style: TextStyle(
@@ -123,22 +121,18 @@ class NotificationCard extends StatelessWidget {
         ),
         const SizedBox(height: 8.0),
         Row(
-          mainAxisAlignment: MainAxisAlignment.start, // جعل الأزرار على اليسار
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             const SizedBox(width: 8.0),
             TextButton(
-              onPressed: () {
-                // منطق الإلغاء هنا
-              },
+              onPressed: () {},
               child: const Text(
                 'إلغاء',
                 style: TextStyle(color: Colors.red),
               ),
             ),
             TextButton(
-              onPressed: () {
-                // منطق التحديث هنا
-              },
+              onPressed: () {},
               child: const Text(
                 'تحديث',
                 style: TextStyle(color: Colors.blue),

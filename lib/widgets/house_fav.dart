@@ -5,14 +5,14 @@ class ItemCard extends StatefulWidget {
   const ItemCard(this.item, this.onTap, this.onFavoriteToggle, {super.key});
   final Item item;
   final Function()? onTap;
-  final Function(Item item) onFavoriteToggle; // الجزء المعدل هنا
+  final Function(Item item) onFavoriteToggle;
 
   @override
   State<ItemCard> createState() => _ItemCardState();
 }
 
 class _ItemCardState extends State<ItemCard> {
-  bool isFavorite = true; // البداية كـ مفضل (القلب باللون الأحمر)
+  bool isFavorite = true;
 
   String formatNumber(double? number) {
     if (number == null) return '0';
@@ -82,15 +82,11 @@ class _ItemCardState extends State<ItemCard> {
                         IconButton(
                           icon: Icon(
                             Icons.favorite,
-                            color: isFavorite
-                                ? Colors.red
-                                : Colors
-                                    .white, // إذا كان مفضلًا، يبقى أحمر، وإذا تم إلغاؤه، يصبح أبيض
+                            color: isFavorite ? Colors.red : Colors.white,
                           ),
                           onPressed: () {
                             setState(() {
-                              isFavorite =
-                                  !isFavorite; // تغيير الحالة عند الضغط
+                              isFavorite = !isFavorite;
                             });
                           },
                         ),

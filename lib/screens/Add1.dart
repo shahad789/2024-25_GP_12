@@ -1,13 +1,11 @@
-// ignore_for_file: file_names, depend_on_referenced_packages, unused_import
+import 'dart:io';
 
+import 'package:daar/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:daar/screens/home_screen.dart'; // استيراد الصفحة الرئيسية
 
-// إعداد التطبيق وضبط واجهة المستخدم، مع تخصيص شريط الحالة وجعل الصفحة الرئيسية هي صفحة تفاصيل العقار
+// Main application setup with MaterialApp and PropertyDetailsPage as the initial screen
 void main() {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -15,10 +13,8 @@ void main() {
   runApp(const MyApp());
 }
 
-// التطبيق الرئيسي  MaterialApp لتحديد الإعدادات العامة وصفحة البداية
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -39,21 +35,17 @@ class PropertyDetailsPage extends StatefulWidget {
   createState() => _PropertyDetailsPageState();
 }
 
-// اختيار المدينة- حي-المنطقة -الاتجاهات
+//Selecting city, district, region, and directions
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   String? selectedCity;
   String? selectedNeighborhood;
   String? selectedRegion;
-  String? selectedPropertyType; // تعريف المتغير
+  String? selectedPropertyType;
   final TextEditingController dateController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   final TextEditingController streetWidthController = TextEditingController();
   final TextEditingController locationLinkController = TextEditingController();
   File? selectedImage;
-
-  // متغير للتحكم في عرض تقدير العقار
-  bool showEstimation = false;
-
   final List<String> cities = [
     'الرياض',
     'جدة',
@@ -61,7 +53,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     'الخبر',
     'أخرى',
   ];
-
   final List<String> neighborhoods = ['حي 1', 'حي 2', 'حي 3'];
   final List<String> regions = [
     'مكة المكرمة',
@@ -78,8 +69,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     'الجـوف',
   ];
 
-  // الواجهة تحتوي على الاتجاهات شرق- غرب- جنوب-شمال
-
+  //the directions include: East, West, South, North.
   final List<String> directions = ['شمال', 'جنوب', 'شرق', 'غرب'];
   final List<String> selectedDirections = [];
   Widget _buildDirectionsDropdown() {
@@ -130,7 +120,10 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  // تفاصيل العقار
+  //Variable to control the display of property estimation
+  bool showEstimation = false;
+
+  //Property details
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,7 +140,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           IconButton(
             icon: const Icon(Icons.arrow_forward, color: Colors.white),
             onPressed: () {
-              // العودة إلى الصفحة الرئيسية
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -216,15 +208,15 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 _buildBoxField(context, 'تفاصيل', Icons.comment, isLarge: true),
                 const SizedBox(height: 30),
                 _buildHelpAndPriceRow(context),
-                const SizedBox(height: 30), // مسافة بين العناصر
-                const SizedBox(height: 20), // زيادة المسافة قبل الزر
+                const SizedBox(height: 30),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          // إضافة العقار
+                          //add Property button
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -252,14 +244,14 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-// دالة لبناء واجهة اختيار نوع العقار
+// property type selection
   Widget _buildPropertyType() {
     return Column(
       children: [
         const Align(
-          alignment: Alignment.topLeft, // تغيير المحاذاة إلى اليسار
+          alignment: Alignment.topLeft,
           child: Padding(
-            padding: EdgeInsets.only(left: 20.0), // تعديل الحشوة إلى اليسار
+            padding: EdgeInsets.only(left: 20.0),
             child: Text(
               '*',
               style: TextStyle(color: Colors.red, fontSize: 12),
@@ -294,37 +286,28 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-// دالة لإنشاء زر نوع العقار
   Widget _buildPropertyTypeButton(String label, IconData icon) {
-    bool isSelected = selectedPropertyType == label; // تحقق إذا كان الزر محددًا
+    bool isSelected = selectedPropertyType == label;
     return GestureDetector(
       onTap: () {
         setState(() {
-          // تحديث الحالة عند الضغط
-          selectedPropertyType = label; // تعيين النوع المحدد
+          selectedPropertyType = label;
         });
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.grey
-              : Colors.transparent, // تغيير لون الخلفية عند التحديد
+          color: isSelected ? Colors.grey : Colors.transparent,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Row(
           children: [
-            Icon(icon,
-                color: isSelected
-                    ? Colors.black
-                    : Colors.white), // لون الأيقونة عند التحديد
+            Icon(icon, color: isSelected ? Colors.black : Colors.white),
             const SizedBox(width: 5),
             Text(
               label,
               style: TextStyle(
-                color: isSelected
-                    ? Colors.black
-                    : Colors.white, // لون النص عند التحديد
+                color: isSelected ? Colors.black : Colors.white,
               ),
             ),
           ],
@@ -333,21 +316,21 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  // دالة لإنشاء فاصل عمودي (Divider)
   Widget _buildVerticalDivider() {
     return const VerticalDivider(
-      color: Colors.white, // لون الفاصل
-      thickness: 2, // سمك الفاصل
-      width: 20, // المسافة حول الفاصل
+      color: Colors.white,
+      thickness: 2,
+      width: 20,
     );
   }
 
-  // دالة لعرض تفاصيل التقدير إذا كانت الحالة مفعلة
+// Function to display estimation details if the condition is enabled
   Widget _buildEstimationDetails() {
     if (!showEstimation) {
-      return const SizedBox.shrink(); // لا شيء إذا لم تكن الحالة مفعلة
+      return const SizedBox.shrink();
     }
 
+//Price input field with estimated property value range
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -388,9 +371,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                           border: InputBorder.none,
                           hintText: '',
                         ),
-                        onSubmitted: (value) {
-                          // يمكنك إضافة أي منطق هنا عند إدخال القيمة
-                        },
+                        onSubmitted: (value) {},
                       ),
                     ),
                   ],
@@ -427,7 +408,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  // دالة لبناء حقل نصي كبير
+//text field with customizable label, icon, and size, used for entering text in a form.
   Widget _buildBoxField(BuildContext context, String label, IconData icon,
       {bool isLarge = false}) {
     return Row(
@@ -440,36 +421,32 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             textAlign: TextAlign.right,
             textDirection: TextDirection.rtl,
             decoration: InputDecoration(
-              labelText: label, // استخدام labelText لعرض النص التوضيحي
+              labelText: label,
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.grey,
               ),
               border: const OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.black), // لون الحدود
+                borderSide: BorderSide(color: Colors.black),
               ),
               enabledBorder: const OutlineInputBorder(
-                borderSide:
-                    BorderSide(color: Colors.black), // لون الحدود عند التمكين
+                borderSide: BorderSide(color: Colors.black),
               ),
               focusedBorder: const OutlineInputBorder(
-                borderSide: BorderSide(
-                    color:
-                        Color.fromARGB(255, 0, 0, 0)), // لون الحدود عند التركيز
+                borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
               ),
               prefixIcon: Icon(icon, color: const Color(0xFF180A44)),
-              contentPadding: const EdgeInsets.symmetric(
-                  vertical: 20, horizontal: 10), // إضافة padding أفقي
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
             ),
-            controller:
-                TextEditingController(), // استخدام TextEditingController فارغ
+            controller: TextEditingController(),
           ),
         ),
       ],
     );
   }
 
-// دالة لبناء صف المساعدة والسعر
+//Help button for property evaluation, field for entering the required price, and property details.
   Widget _buildHelpAndPriceRow(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -477,7 +454,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // زر المساعدة على يسار السعر
             _buildHelpButton(),
             Expanded(
               child: Stack(
@@ -504,12 +480,12 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             ),
           ],
         ),
-        _buildEstimationDetails(), // إضافة تفاصيل التقدير هنا
+        _buildEstimationDetails(),
       ],
     );
   }
 
-// دالة لبناء حقل إدخال السعر مع النجمة
+//Creates a price input field
   Widget _buildPriceFieldWithStar(
     BuildContext context,
     String label,
@@ -518,24 +494,22 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   }) {
     return TextField(
       controller: controller,
-
       decoration: InputDecoration(
         labelText: label,
-        prefixText: ' ر.س ', // إضافة النص "ر.س" على اليسار
-        prefixStyle:
-            const TextStyle(fontSize: 12, color: Colors.grey), // تنسيق النص
+        prefixText: ' ر.س ',
+        prefixStyle: const TextStyle(fontSize: 12, color: Colors.grey),
         border: const OutlineInputBorder(),
       ),
-      keyboardType: TextInputType.number, // تأكد من أن الحقل يقبل الأرقام
+      keyboardType: TextInputType.number,
     );
   }
 
-// دالة لإنشاء زر المساعدة الوحيد
+//Function to create a help button to toggle estimation state
   Widget _buildHelpButton() {
     return GestureDetector(
       onTap: () {
         setState(() {
-          showEstimation = !showEstimation; // تغيير حالة إظهار التقدير
+          showEstimation = !showEstimation;
         });
       },
       child: Container(
@@ -558,8 +532,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
       ),
     );
   }
-
-  // دالة لإنشاء حقل الإدخال
 
   Widget _buildInputField(BuildContext context, String label, IconData? icon,
       {TextEditingController? controller}) {
@@ -594,13 +566,14 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+// Creates a labeled dropdown list with selection handling.
   Widget _buildDropdownField(
       String label, List<String> items, ValueChanged<String?> onChanged) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // محاذاة العناصر إلى اليسار
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.end, // محاذاة النص إلى اليمين
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
             const Text(
               '*',
@@ -608,7 +581,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             ),
             const SizedBox(width: 4),
             Text(
-              "اختر $label", // النص فوق الحقل
+              "اختر $label",
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -617,7 +590,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             ),
           ],
         ),
-        const SizedBox(height: 8), // مسافة بين النص والقائمة المنسدلة
+        const SizedBox(height: 8),
         Stack(
           alignment: Alignment.centerLeft,
           children: [
@@ -667,7 +640,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  // عرض الشارع
+// Input field for street width with label and icon.
   Widget _buildStreetWidthField() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -696,6 +669,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+//This method is used to clean up and release resources used by the controllers
   @override
   void dispose() {
     dateController.dispose();
@@ -705,6 +679,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     super.dispose();
   }
 
+//// These functions allow selecting an image from the gallery, saving its path, and displaying a preview in the UI.
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -716,7 +691,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     }
   }
 
-  // إرفاق صورة
   Widget _buildImagePicker() {
     return Row(
       children: [
@@ -727,30 +701,27 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             textAlign: TextAlign.right,
             textDirection: TextDirection.rtl,
             decoration: InputDecoration(
-              labelText: 'إرفاق صورة', // استخدام labelText لعرض النص التوضيحي
+              labelText: 'إرفاق صورة',
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.grey,
               ),
               border: const OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.black), // لون الحدود
+                borderSide: BorderSide(color: Colors.black),
               ),
               enabledBorder: const OutlineInputBorder(
-                borderSide:
-                    BorderSide(color: Colors.black), // لون الحدود عند التمكين
+                borderSide: BorderSide(color: Colors.black),
               ),
               focusedBorder: const OutlineInputBorder(
-                borderSide: BorderSide(
-                    color:
-                        Color.fromARGB(255, 0, 0, 0)), // لون الحدود عند التركيز
+                borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
               ),
               prefixIcon: IconButton(
                 icon: const Icon(Icons.attach_file, color: Color(0xFF180A44)),
                 onPressed: _pickImage,
-                padding: EdgeInsets.zero, // إزالة padding من الأيقونة
+                padding: EdgeInsets.zero,
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                  vertical: 68, horizontal: 10), // إضافة padding أفقي
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 68, horizontal: 10),
             ),
           ),
         ),
@@ -758,12 +729,10 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  // عرض معاينة الصورة
   Widget _buildImagePreview() {
     if (selectedImage == null) {
       return const SizedBox.shrink();
     }
-
     return Container(
       margin: const EdgeInsets.only(top: 10),
       width: double.infinity,

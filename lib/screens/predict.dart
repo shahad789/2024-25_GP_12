@@ -3,9 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+
 import '../service/api_service.dart';
 import 'home_screen.dart';
 
+//Sets transparent status bar and launches PredictPage.
 void main() {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -15,7 +17,6 @@ void main() {
 
 class PredictPage extends StatelessWidget {
   const PredictPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,6 +37,8 @@ class PropertyDetailsPage extends StatefulWidget {
   createState() => _PropertyDetailsPageState();
 }
 
+// Load the districts for the selected city by calling the API (ApiService.getDistricts),
+// update the UI with unique values, or display an error message if the load fails.
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   String? selectedCity;
   String? selectedNeighborhood;
@@ -111,6 +114,8 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     }
   }
 
+// API requests are made to fetch districts based on the selected city and to predict property prices
+// based on the inputs, with error handling and user messages displayed upon failure.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,13 +187,14 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+  //This widget allows the user to select the property type (Apartment, Floor, Villa)
   Widget _buildPropertyType() {
     return Column(
       children: [
         const Align(
-          alignment: Alignment.topLeft, // تغيير المحاذاة إلى اليسار
+          alignment: Alignment.topLeft,
           child: Padding(
-            padding: EdgeInsets.only(left: 20.0), // تعديل الحشوة إلى اليسار
+            padding: EdgeInsets.only(left: 20.0),
             child: Text(
               '*',
               style: TextStyle(color: Colors.red, fontSize: 12),
@@ -274,6 +280,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+// Function to build a dropdown menu with a label and a list of items, updating the state when a value is selected.
   Widget _buildDropdownField(
       String label, List<String> items, ValueChanged<String?> onChanged) {
     // Ensure the selected value is part of the items list
@@ -281,12 +288,10 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         (items.contains(selectedNeighborhood)) ? selectedNeighborhood : null;
 
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start, // Align elements to the left
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment:
-              MainAxisAlignment.end, // Align label text to the right
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
             const Text(
               '*',
@@ -294,7 +299,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             ),
             const SizedBox(width: 4),
             Text(
-              "اختر $label", // Label text
+              "اختر $label",
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -303,7 +308,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             ),
           ],
         ),
-        const SizedBox(height: 8), // Space between the label and dropdown
+        const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.symmetric(horizontal: 10),
@@ -351,6 +356,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
+// Help box for triggering price prediction.
   Widget _buildHelpBox() {
     return GestureDetector(
       onTap: predictPrice,
@@ -417,7 +423,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             ),
           ),
         ),
-        // Text explanation of the predicted price
         Container(
           margin: const EdgeInsets.only(top: 7),
           child: const Text.rich(
