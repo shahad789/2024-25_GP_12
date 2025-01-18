@@ -4,6 +4,7 @@ import 'package:daar/screens/authentication.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:daar/usprovider/UserProvider.dart';
+import 'package:daar/screens/EmailVerificationScreen.dart';
 
 class RegScreen extends StatefulWidget {
   const RegScreen({Key? key}) : super(key: key);
@@ -521,11 +522,23 @@ class _RegScreenState extends State<RegScreen> {
         emailController.text.trim(),
         passwordController.text.trim(),
       );
-
       if (user != null) {
         final userEmail = user.email;
+        // Send email verification
+        await user.sendEmailVerification();
 
-        // Add user details to Firestore
+        // Navigate to EmailVerificationScreen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EmailVerificationScreen(),
+          ),
+        );
+
+        _showSnackBar(
+            context, 'تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني.');
+
+        // Add user details to Firestore after email verification
         final userDoc =
             await FirebaseFirestore.instance.collection("user").add({
           "Name": fullNameController.text.trim(),
@@ -543,9 +556,6 @@ class _RegScreenState extends State<RegScreen> {
           fullNameController.text.trim(), // User's full name
           userEmail!, // User's email
         );
-
-        // Navigate to the home screen
-        goToHome(context);
       }
     } on FirebaseAuthException catch (e) {
       // Handle Firebase errors

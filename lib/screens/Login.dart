@@ -338,6 +338,13 @@ class _LoginScreenState extends State<LoginScreen> {
       final user = await auth.loginUserWithEmailAndPassword(
           _emailController.text, _passwordController.text);
       if (user != null) {
+        if (!user.emailVerified) {
+          // Notify the user to verify their email
+          _showSnackBar(
+              context, 'يرجى التحقق من بريدك الإلكتروني قبل تسجيل الدخول');
+          return;
+        }
+
         final userEmail = user.email;
 
         // Fetch user document ID based on email
