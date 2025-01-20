@@ -1,12 +1,14 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:flutter/material.dart';
-import 'package:dots_indicator/dots_indicator.dart';
-import 'package:daar/widgets/detailssmall.dart';
-import 'package:daar/widgets/detailinfo.dart';
-import 'package:intl/intl.dart';
-import 'package:daar/screens/home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:daar/screens/home_screen.dart';
+import 'package:daar/usprovider/UserProvider.dart';
+import 'package:daar/widgets/detailinfo.dart';
+import 'package:daar/widgets/detailssmall.dart';
+import 'package:dots_indicator/dots_indicator.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class DetailsBro extends StatefulWidget {
   final String propertyId;
@@ -27,6 +29,48 @@ class _DetailsBroState extends State<DetailsBro> {
   void initState() {
     super.initState();
     _fetchPropertyDetails();
+    _incrementViewCount();
+  }
+
+//increment view
+  void _incrementViewCount() async {
+    try {
+      // Get the current user's Firestore document ID from UserProvider
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final String? currentUserId = userProvider.userDocId;
+
+      if (currentUserId == null) return; // If user ID is null, exit
+
+      // Fetch the property document
+      final propertyDoc = await FirebaseFirestore.instance
+          .collection('Property')
+          .doc(widget.propertyId)
+          .get();
+
+      if (propertyDoc.exists) {
+        final propertyData = propertyDoc.data();
+
+        // Ensure 'user' field exists and is a reference
+        final DocumentReference? propertyOwnerRef = propertyData?['user'];
+
+        if (propertyOwnerRef != null) {
+          // Get the actual owner ID from Firestore reference
+          final String propertyOwnerId = propertyOwnerRef.id;
+
+          // Only increment if the current user is NOT the owner
+          if (propertyOwnerId != currentUserId) {
+            await FirebaseFirestore.instance
+                .collection('Property')
+                .doc(widget.propertyId)
+                .update({
+              'view': FieldValue.increment(1),
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Failed to increment view count: $e');
+    }
   }
 
 //method of fetching from database
@@ -297,7 +341,32 @@ class _DetailsBroState extends State<DetailsBro> {
               const SizedBox(height: 20),
 
               // Contact Details
-              contactdet('طريقة التواصل', '${propertyData!['contact']}'),
+              FutureBuilder<DocumentSnapshot>(
+                future: (propertyData!['user'] as DocumentReference)
+                    .get(), // Fetch the user document
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator(); // Show loading spinner to load
+                  }
+                  if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      snapshot.data == null) {
+                    return const Text(
+                        'فشل في تحميل بيانات المستخدم.'); // errors
+                  }
+
+                  // Extract user document and cast its data to Map<String, dynamic>
+                  final userDocument = snapshot.data!;
+                  final userData = userDocument.data() as Map<String, dynamic>;
+
+                  // Retrieve and convert the Phone field from string to number becuase in database string
+                  final phoneString = userData['Phone'] ??
+                      '0'; // Default if "Phone" field is missing
+
+                  return contactdet('طريقة التواصل', phoneString);
+                },
+              ),
+
               const SizedBox(height: 20),
 
               // Price Section

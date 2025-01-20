@@ -1,16 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:daar/screens/Add1.dart';
+import 'package:daar/screens/filterp.dart';
+import 'package:daar/screens/notif.dart';
+import 'package:daar/screens/predict.dart';
+import 'package:daar/screens/profile_page.dart';
+import 'package:daar/usprovider/UserProvider.dart';
 import 'package:daar/widgets/recomend_list.dart';
 import 'package:daar/widgets/search_field.dart';
+import 'package:daar/widgets/vertical_recomend_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:daar/widgets/vertical_recomend_list.dart';
-import 'package:daar/screens/profile_page.dart';
-import 'package:daar/screens/Add1.dart';
-import 'package:daar/screens/predict.dart';
-import 'package:daar/screens/notif.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import 'package:daar/usprovider/UserProvider.dart';
-import 'package:daar/screens/filterp.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,32 +65,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
 //this method we call up intially to list all property in home from database
   Future<void> _fetchProperties() async {
-    //retrieve
+    // Retrieve properties where status is 'متوفر'
     final propertySnapshot = await FirebaseFirestore.instance
         .collection('Property')
+        .where('status', isEqualTo: 'متوفر') // Check for status
         .limit(100)
         .get();
-    //make into list
+
+    // Make into list
     final properties = propertySnapshot.docs
         .map((doc) => Property.fromFirestore(doc))
         .toList();
-    //put to use
+
+    // Put to use
     setState(() {
       allProperties = properties;
-      filteredProperties = properties; //initially have it
+      filteredProperties = properties; // Initially have it
     });
 
-    //fetch recent for recomend list top 5
+    // Fetch recent for recommend list top 5 where status is 'متوفر'
     final recentPropertiesSnapshot = await FirebaseFirestore.instance
         .collection('Property')
-        .orderBy('Date_list', descending: true) //based on recent added
+        .where('status', isEqualTo: 'متوفر') // Check for status
+        .orderBy('Date_list', descending: true) // Based on recent added
         .limit(5)
         .get();
-    //make into list
+
+    // Make into list
     final recentProperties = recentPropertiesSnapshot.docs
         .map((doc) => Property.fromFirestore(doc))
         .toList();
-    //put to use
+
+    // Put to use
     setState(() {
       recommendedProperties = recentProperties;
     });
