@@ -30,6 +30,7 @@ class _DetailsBroState extends State<DetailsBro> {
     super.initState();
     _fetchPropertyDetails();
     _incrementViewCount();
+    _incrementUserViewHistory();
   }
 
 //increment view
@@ -70,6 +71,62 @@ class _DetailsBroState extends State<DetailsBro> {
       }
     } catch (e) {
       print('Failed to increment view count: $e');
+    }
+  }
+
+  //for view timespan
+  void _incrementUserViewHistory() async {
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final String? currentUserId = userProvider.userDocId;
+
+      if (currentUserId == null) return;
+
+      final userRef =
+          FirebaseFirestore.instance.collection('user').doc(currentUserId);
+      final userDoc = await userRef.get();
+
+      List<dynamic> viewedProperties = [];
+
+      if (userDoc.exists && userDoc.data()?['viewedProperties'] != null) {
+        viewedProperties = List.from(userDoc.data()?['viewedProperties']);
+      }
+
+      int existingIndex = viewedProperties
+          .indexWhere((p) => p['propertyId'] == widget.propertyId);
+
+      if (existingIndex != -1) {
+        viewedProperties[existingIndex]['numview'] += 1;
+        viewedProperties[existingIndex]['timespan'] =
+            DateTime.now().millisecondsSinceEpoch;
+      } else {
+        viewedProperties.add({
+          'propertyId': widget.propertyId,
+          'numview': 1,
+          'timespan': DateTime.now().millisecondsSinceEpoch,
+        });
+      }
+
+      if (viewedProperties.length > 10) {
+        // Corrected sorting order
+        viewedProperties.sort((a, b) {
+          int viewCompare =
+              a['numview'].compareTo(b['numview']); // Sort by least views first
+          if (viewCompare != 0) return viewCompare;
+          return a['timespan']
+              .compareTo(b['timespan']); // If same views, oldest first
+        });
+
+        viewedProperties.removeAt(0);
+      }
+
+      if (userDoc.exists) {
+        await userRef.update({'viewedProperties': viewedProperties});
+      } else {
+        await userRef.set({'viewedProperties': viewedProperties});
+      }
+    } catch (e) {
+      print('Failed to update user view history: $e');
     }
   }
 
