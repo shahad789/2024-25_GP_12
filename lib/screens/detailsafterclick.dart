@@ -9,6 +9,8 @@ import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class DetailsBro extends StatefulWidget {
   final String propertyId;
@@ -420,10 +422,71 @@ class _DetailsBroState extends State<DetailsBro> {
                   final phoneString = userData['Phone'] ??
                       '0'; // Default if "Phone" field is missing
 
-                  return contactdet('طريقة التواصل', phoneString);
+                  // Format the phone number to add +966 for Saudi Arabia
+                  final phoneNumber =
+                      '+966${phoneString.replaceFirst('0', '')}'; // Remove leading zero and add +966
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Center(
+                      // Ensure that the whole column is centered
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment
+                            .center, // Center the content vertically
+                        crossAxisAlignment: CrossAxisAlignment
+                            .center, // Center the content horizontally
+                        children: [
+                          // Add 'طريقة التواصل' text above the phone number
+                          const Text(
+                            'طريقة التواصل',
+                            style: TextStyle(
+                              fontSize: 20, // Font size for the title
+                              color: Color.fromARGB(255, 13, 6, 37),
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign:
+                                TextAlign.center, // Align text in the center
+                          ),
+
+                          const SizedBox(
+                              height:
+                                  8), // Add space between title and phone number
+
+                          // Display the phone number with the same font size as the price
+                          Text(
+                            'رقم الهاتف: $phoneNumber',
+                            style: const TextStyle(
+                              fontSize: 22, // Same font size as price
+                              color: Color.fromARGB(255, 13, 6, 37),
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign:
+                                TextAlign.center, // Align text in the center
+                          ),
+
+                          const SizedBox(
+                              height:
+                                  8), // Add some space between text and icon
+
+                          // WhatsApp Icon Button with larger size
+                          IconButton(
+                            icon: const Icon(
+                              FontAwesomeIcons.whatsapp,
+                              color: Colors.green,
+                              size: 30, // Increase the icon size
+                            ),
+                            onPressed: () {
+                              final Uri whatsappUrl =
+                                  Uri.parse('https://wa.me/$phoneNumber');
+                              launchUrl(whatsappUrl,
+                                  mode: LaunchMode.externalApplication);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 },
               ),
-
               const SizedBox(height: 20),
 
               // Price Section

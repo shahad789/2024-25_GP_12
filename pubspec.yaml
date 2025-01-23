@@ -26,6 +26,8 @@ dependencies:
   get: ^4.6.1
   provider: ^6.1.2
   shared_preferences: ^2.0.0
+  font_awesome_flutter: ^10.5.0
+  
 
 
 dev_dependencies:
