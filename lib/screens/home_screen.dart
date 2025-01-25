@@ -63,42 +63,120 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-//this method we call up intially to list all property in home from database
+//code here of rexomend
   Future<void> _fetchProperties() async {
-    // Retrieve properties where status is 'متوفر'
-    final propertySnapshot = await FirebaseFirestore.instance
-        .collection('Property')
-        .where('status', isEqualTo: 'متوفر') // Check for status
-        .limit(100)
-        .get();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final String? currentUserId = userProvider.userDocId;
 
-    // Make into list
-    final properties = propertySnapshot.docs
-        .map((doc) => Property.fromFirestore(doc))
-        .toList();
+    if (currentUserId == null) return;
 
-    // Put to use
+    final userRef =
+        FirebaseFirestore.instance.collection('user').doc(currentUserId);
+    final userDoc = await userRef.get();
+
+    List<dynamic> viewedProperties =
+        userDoc.exists && userDoc.data()?['viewedProperties'] != null
+            ? List.from(userDoc.data()?['viewedProperties'])
+            : [];
+
+    Set<String> addedPropertyIds = {}; // Track unique property IDs
+    List<Property> fetchedProperties = [];
+
+    if (viewedProperties.isEmpty) {
+      final recentPropertiesSnapshot = await FirebaseFirestore.instance
+          .collection('Property')
+          .where('status', isEqualTo: 'متوفر')
+          .orderBy('Date_list', descending: true)
+          .limit(5)
+          .get();
+
+      fetchedProperties = recentPropertiesSnapshot.docs
+          .map((doc) => Property.fromFirestore(doc))
+          .toList();
+    } else {
+      // Fetch recommended properties based on history
+      List<String> propertyIds =
+          viewedProperties.map((p) => p['propertyId'] as String).toList();
+
+      final viewedPropertiesSnapshot = await FirebaseFirestore.instance
+          .collection('Property')
+          .where(FieldPath.documentId, whereIn: propertyIds)
+          .get();
+
+      Map<String, int> typeCounts = {};
+      Map<String, int> cityCounts = {};
+
+      for (var doc in viewedPropertiesSnapshot.docs) {
+        final data = doc.data();
+        String type = data['category'] ?? '';
+        String city = data['city'] ?? '';
+
+        int numview = viewedProperties.firstWhere(
+            (p) => p['propertyId'] == doc.id,
+            orElse: () => {'numview': 1})['numview'];
+
+        typeCounts[type] = (typeCounts[type] ?? 0) + numview;
+        cityCounts[city] = (cityCounts[city] ?? 0) + numview;
+      }
+
+      if (typeCounts.isNotEmpty && cityCounts.isNotEmpty) {
+        String mostViewedType =
+            typeCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+        String mostViewedCity =
+            cityCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+
+        // Fetching properties with priority order
+        Future<void> fetchAndAdd(Query query) async {
+          final snapshot = await query.get();
+          for (var doc in snapshot.docs) {
+            if (!addedPropertyIds.contains(doc.id)) {
+              Property property = Property.fromFirestore(doc);
+              fetchedProperties.add(property);
+              addedPropertyIds.add(doc.id);
+              if (fetchedProperties.length >= 5) return;
+            }
+          }
+        }
+
+        await fetchAndAdd(FirebaseFirestore.instance
+            .collection('Property')
+            .where('status', isEqualTo: 'متوفر')
+            .where('category', isEqualTo: mostViewedType)
+            .where('city', isEqualTo: mostViewedCity)
+            .limit(5));
+
+        if (fetchedProperties.length < 5) {
+          await fetchAndAdd(FirebaseFirestore.instance
+              .collection('Property')
+              .where('status', isEqualTo: 'متوفر')
+              .where('city', isEqualTo: mostViewedCity)
+              .limit(5));
+        }
+
+        if (fetchedProperties.length < 5) {
+          await fetchAndAdd(FirebaseFirestore.instance
+              .collection('Property')
+              .where('status', isEqualTo: 'متوفر')
+              .where('category', isEqualTo: mostViewedType)
+              .limit(5));
+        }
+      }
+    }
+
     setState(() {
-      allProperties = properties;
-      filteredProperties = properties; // Initially have it
+      recommendedProperties = fetchedProperties;
     });
 
-    // Fetch recent for recommend list top 5 where status is 'متوفر'
-    final recentPropertiesSnapshot = await FirebaseFirestore.instance
+    // Fetch all properties
+    final allPropertiesSnapshot = await FirebaseFirestore.instance
         .collection('Property')
-        .where('status', isEqualTo: 'متوفر') // Check for status
-        .orderBy('Date_list', descending: true) // Based on recent added
-        .limit(5)
+        .where('status', isEqualTo: 'متوفر')
         .get();
 
-    // Make into list
-    final recentProperties = recentPropertiesSnapshot.docs
-        .map((doc) => Property.fromFirestore(doc))
-        .toList();
-
-    // Put to use
     setState(() {
-      recommendedProperties = recentProperties;
+      allProperties = allPropertiesSnapshot.docs
+          .map((doc) => Property.fromFirestore(doc))
+          .toList();
     });
   }
 
@@ -298,20 +376,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 20.0),
-
               if (!filtersApplied)
                 recomendList("التوصيات", recommendedProperties),
-              const SizedBox(height: 40.0),
-              // عرض العقارات المفلترة
-              if (filteredProperties.isNotEmpty)
+
+              const SizedBox(height: 20.0),
+
+              // Display all properties when no filter is applied
+              if (!filtersApplied)
+                VerticalRecomendList("العقارات", allProperties),
+
+              // Display filtered properties when filters are applied
+              if (filtersApplied)
                 VerticalRecomendList("العقارات", filteredProperties),
-              if (filteredProperties.isEmpty)
+
+              // Show "no results" message only when filters are applied and result is empty
+              if (filtersApplied && filteredProperties.isEmpty)
                 const Center(
                   child: Text(
                     'لا توجد نتائج للتصفية المختارة',
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                 ),
+
               const SizedBox(
                   height: 4000.0), // ترك مسافة إضافية أسفل المحتوى          ],
             ],

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:daar/screens/profile_page.dart';
 import 'package:daar/usprovider/UserProvider.dart';
 import 'package:daar/widgets/vertical_recomend_list2.dart';
 import 'package:flutter/material.dart';
@@ -76,7 +77,10 @@ class _OwenScreenState extends State<OwenScreen> {
           actions: [
             IconButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfilePage()),
+                );
               },
               icon: const Icon(
                 Icons.arrow_forward,
