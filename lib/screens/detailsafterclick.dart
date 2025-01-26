@@ -3,14 +3,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:daar/screens/home_screen.dart';
 import 'package:daar/usprovider/UserProvider.dart';
-import 'package:daar/widgets/detailinfo.dart';
 import 'package:daar/widgets/detailssmall.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class DetailsBro extends StatefulWidget {
   final String propertyId;
@@ -25,6 +24,7 @@ class _DetailsBroState extends State<DetailsBro> {
   int _currentImageIndex = 0; //since multiple images
   bool isLiked = false; // liked or no
   Map<String, dynamic>? propertyData;
+  String? currentUserId;
 
 //initially
   @override
@@ -33,7 +33,79 @@ class _DetailsBroState extends State<DetailsBro> {
     _fetchPropertyDetails();
     _incrementViewCount();
     _incrementUserViewHistory();
+    _checkIfFavorite();
   }
+
+  /////favorite
+  // Fetch property details
+  void _fetchPropertyDetails() async {
+    final docSnapshot = await FirebaseFirestore.instance
+        .collection('Property')
+        .doc(widget.propertyId)
+        .get();
+
+    if (docSnapshot.exists) {
+      setState(() {
+        propertyData = docSnapshot.data();
+      });
+    }
+  }
+
+  // Check if property is in the user's favorite list
+  void _checkIfFavorite() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    currentUserId = userProvider.userDocId;
+
+    if (currentUserId == null) return;
+
+    final userRef =
+        FirebaseFirestore.instance.collection('user').doc(currentUserId);
+    final userDoc = await userRef.get();
+
+    if (!userDoc.exists || userDoc.data() == null) {
+      // If user document does not exist, create it with an empty favorites list
+      await userRef.set({'favorites': []});
+      return;
+    }
+
+    List<String> favorites =
+        List<String>.from(userDoc.data()?['favorites'] ?? []);
+
+    setState(() {
+      isLiked = favorites.contains(widget.propertyId);
+    });
+  }
+
+  // Toggle favorite status
+  void _toggleFavorite() async {
+    if (currentUserId == null) return;
+
+    final userRef =
+        FirebaseFirestore.instance.collection('user').doc(currentUserId);
+    final userDoc = await userRef.get();
+
+    List<String> favorites = [];
+
+    if (userDoc.exists && userDoc.data() != null) {
+      // Ensure 'favorites' exists and is a List<String>
+      favorites = List<String>.from(userDoc.data()?['favorites'] ?? []);
+    }
+
+    if (favorites.contains(widget.propertyId)) {
+      favorites.remove(widget.propertyId);
+    } else {
+      favorites.add(widget.propertyId);
+    }
+
+    // Update Firestore with merged data
+    await userRef.set({'favorites': favorites}, SetOptions(merge: true));
+
+    setState(() {
+      isLiked = favorites.contains(widget.propertyId);
+    });
+  }
+
+  ///
 
 //increment view
   void _incrementViewCount() async {
@@ -130,27 +202,6 @@ class _DetailsBroState extends State<DetailsBro> {
     } catch (e) {
       print('Failed to update user view history: $e');
     }
-  }
-
-//method of fetching from database
-  void _fetchPropertyDetails() async {
-    final docSnapshot = await FirebaseFirestore.instance
-        .collection('Property')
-        .doc(widget.propertyId)
-        .get();
-
-    if (docSnapshot.exists) {
-      setState(() {
-        propertyData = docSnapshot.data();
-      });
-    }
-  }
-
-//method for like
-  void _toggleLike() {
-    setState(() {
-      isLiked = !isLiked;
-    });
   }
 
 //interface
@@ -259,10 +310,9 @@ class _DetailsBroState extends State<DetailsBro> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     GestureDetector(
-                      onTap: _toggleLike,
+                      onTap: _toggleFavorite,
                       child: Icon(
                         isLiked ? Icons.favorite : Icons.favorite_border,
                         color: isLiked ? Colors.red : Colors.grey,
