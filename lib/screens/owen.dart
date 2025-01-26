@@ -99,27 +99,29 @@ class _OwenScreenState extends State<OwenScreen> {
                 topRight: Radius.circular(40.0),
               ),
             ),
+            height: userProperties.isEmpty
+                ? MediaQuery.of(context).size.height
+                : null, // Set height to full screen if there are no properties
             child: isLoading
                 ? const Center(
                     child: CircularProgressIndicator(),
                   )
-                : Column(
-                    children: [
-                      const SizedBox(height: 20.0),
-                      userProperties.isNotEmpty
-                          ? VerticalRecomendList(
-                              "",
-                              userProperties,
-                            )
-                          : const Center(
-                              child: Text(
-                                'لا توجد عقارات مسجلة لك.',
-                                style:
-                                    TextStyle(fontSize: 18, color: Colors.grey),
-                              ),
-                            ),
-                    ],
-                  ),
+                : userProperties.isNotEmpty
+                    ? Column(
+                        children: [
+                          const SizedBox(height: 20.0),
+                          VerticalRecomendList(
+                            "",
+                            userProperties,
+                          ),
+                        ],
+                      )
+                    : const Center(
+                        child: Text(
+                          'لا توجد عقارات مسجلة لك.',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ),
           ),
         ),
       ),

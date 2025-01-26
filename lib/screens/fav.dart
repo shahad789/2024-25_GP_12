@@ -115,6 +115,9 @@ class _FavPageState extends State<FavPage> {
                 topRight: Radius.circular(40.0),
               ),
             ),
+            height: favoriteProperties.length <= 1
+                ? MediaQuery.of(context).size.height
+                : null, // Set height to full screen if there is 0 or 1 favorite
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : favoriteProperties.isNotEmpty
