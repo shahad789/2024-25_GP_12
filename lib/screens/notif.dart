@@ -1,10 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:daar/usprovider/UserProvider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class NotifPage extends StatelessWidget {
+class NotifPage extends StatefulWidget {
   const NotifPage({Key? key}) : super(key: key);
 
   @override
+  _NotifPageState createState() => _NotifPageState();
+}
+
+class _NotifPageState extends State<NotifPage> {
+  List<QueryDocumentSnapshot> properties = []; // تخزين البيانات محليًا
+
+  @override
   Widget build(BuildContext context) {
+    final userDocId = Provider.of<UserProvider>(context).userDocId;
+
     return WillPopScope(
       onWillPop: () async {
         return true;
@@ -63,20 +75,82 @@ class NotifPage extends StatelessWidget {
                   ),
                   color: Colors.white,
                 ),
-                child: const SingleChildScrollView(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 18.0, vertical: 30.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      NotificationCard(
-                        title: 'تذكير لتحديث معلومات عقارك',
-                        message:
-                            'مضى على إعلان الفيلا بحي الياسمين 20 يوم حدث معلوماته ',
-                      ),
-                      Divider(height: 20, color: Colors.grey),
-                    ],
-                  ),
+                child: Builder(
+                  builder: (context) {
+                    // Check if today is Friday
+                    if (DateTime.now().weekday != DateTime.sunday) {
+                      return const Center(
+                        child: Text('لا توجد إشعارات لليوم.'),
+                      );
+                    }
+
+                    // If it's Friday, proceed to display notifications
+                    return StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('Property')
+                          .where('user',
+                              isEqualTo: FirebaseFirestore.instance
+                                  .doc('user/$userDocId'))
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return const Center(
+                              child: Text('حدث خطأ أثناء تحميل البيانات.'));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.docs.isEmpty) {
+                          return const Center(child: Text('لا توجد إشعارات.'));
+                        } else {
+                          properties = snapshot.data!.docs;
+                          return Column(
+                            children: [
+                              Expanded(
+                                child: ListView.builder(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 18.0, vertical: 30.0),
+                                  itemCount: properties.length,
+                                  itemBuilder: (context, index) {
+                                    final doc = properties[index];
+                                    final propertyData =
+                                        doc.data() as Map<String, dynamic>;
+
+                                    final propertyDistrict =
+                                        propertyData['District'] ?? 'الحي';
+                                    final propertyCity = propertyData['city'] ??
+                                        'المدينة غير محددة';
+                                    final propertySize =
+                                        propertyData['size'] ?? 'غير محدد';
+                                    final propertyView =
+                                        propertyData['view'] ?? 0;
+
+                                    final title = 'مشاهدات عقارك';
+                                    final message =
+                                        'تمت مشاهدة عقارك في $propertyCity، حي $propertyDistrict، الذي حجمه $propertySize من قبل $propertyView شخص';
+
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        NotificationCard(
+                                          title: title,
+                                          message: message,
+                                        ),
+                                        const Divider(
+                                            height: 20, color: Colors.grey),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    );
+                  },
                 ),
               ),
             ),
@@ -118,27 +192,6 @@ class NotificationCard extends StatelessWidget {
             fontSize: 16,
             color: Colors.black54,
           ),
-        ),
-        const SizedBox(height: 8.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const SizedBox(width: 8.0),
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                'تحديث',
-                style: TextStyle(color: Colors.blue),
-              ),
-            ),
-          ],
         ),
       ],
     );
