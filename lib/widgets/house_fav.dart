@@ -167,15 +167,29 @@ class _ItemCardState extends State<ItemCard> {
                 //price
                 Align(
                   alignment: Alignment.centerRight,
-                  child: Text(
-                    '$priceFormatted ريال سعودي',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 19.0,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'ريال سعودي',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 19.0,
+                        ),
+                      ),
+                      const SizedBox(width: 4.0),
+                      Text(
+                        priceFormatted,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 19.0,
+                        ),
+                      ),
+                      // Add space between the number and the text
+                    ],
                   ),
                 ),
+
                 const SizedBox(height: 8.0),
               ],
             ),
