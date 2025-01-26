@@ -1,11 +1,11 @@
-import 'package:daar/models/item_model.dart';
+import 'package:daar/screens/fav.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ItemCard extends StatefulWidget {
-  const ItemCard(this.item, this.onTap, this.onFavoriteToggle, {super.key});
-  final Item item;
+  const ItemCard(this.item, this.onTap, {super.key});
+  final Property item;
   final Function()? onTap;
-  final Function(Item item) onFavoriteToggle;
 
   @override
   State<ItemCard> createState() => _ItemCardState();
@@ -22,10 +22,10 @@ class _ItemCardState extends State<ItemCard> {
 
   @override
   Widget build(BuildContext context) {
-    final priceFormatted = formatNumber(widget.item.price);
+    final priceFormatted =
+        NumberFormat('#,##0', 'en_US').format(widget.item.price);
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
+    return Container(
       child: Container(
         width: 300.0,
         margin: const EdgeInsets.only(right: 20.0),
@@ -42,6 +42,7 @@ class _ItemCardState extends State<ItemCard> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                //images
                 Container(
                   width: double.infinity,
                   height: 150.0,
@@ -49,30 +50,31 @@ class _ItemCardState extends State<ItemCard> {
                     borderRadius: BorderRadius.circular(8.0),
                     color: Colors.grey.shade200,
                     image: DecorationImage(
-                      image: widget.item.imagePaths != null &&
-                              widget.item.imagePaths!.isNotEmpty
-                          ? AssetImage(widget.item.imagePaths!.first)
-                          : const AssetImage('assets/images/Logo.png'),
+                      image: NetworkImage(widget.item.images.first),
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 const SizedBox(height: 10.0),
+
+                //type
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      widget.item.category ?? 'غير متوفر',
+                      widget.item.category,
                       style: const TextStyle(
                         color: Color.fromARGB(255, 0, 0, 0),
                         fontSize: 20.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
+                    //size
                     Row(
                       children: [
                         Text(
-                          '${widget.item.size ?? '0'} م²',
+                          '${widget.item.size} م²',
                           style: const TextStyle(
                             color: Color.fromARGB(255, 0, 0, 0),
                             fontSize: 18.0,
@@ -95,62 +97,21 @@ class _ItemCardState extends State<ItemCard> {
                   ],
                 ),
                 const SizedBox(height: 8.0),
+
+                //number of bed, bath, living
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.bed,
-                          size: 19.0,
-                          color: Color.fromARGB(255, 42, 19, 117),
-                        ),
-                        const SizedBox(width: 4.0),
-                        Text(
-                          widget.item.numofbed ?? '0',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 19.0),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+                    _buildIconText(Icons.event_seat, widget.item.numOfLiving),
                     const SizedBox(width: 16.0),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.bathtub,
-                          size: 19.0,
-                          color: Color.fromARGB(255, 42, 19, 117),
-                        ),
-                        const SizedBox(width: 4.0),
-                        Text(
-                          widget.item.numofbath ?? '0',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18.0),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+                    _buildIconText(Icons.bathtub, widget.item.numOfBath),
                     const SizedBox(width: 16.0),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.event_seat,
-                          size: 19.0,
-                          color: Color.fromARGB(255, 42, 19, 117),
-                        ),
-                        const SizedBox(width: 4.0),
-                        Text(
-                          widget.item.numoflivin ?? '0',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18.0),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+                    _buildIconText(Icons.bed, widget.item.numOfBed),
                   ],
                 ),
                 const SizedBox(height: 8.0),
+
+                //city district
                 Row(
                   children: [
                     const Icon(
@@ -158,7 +119,7 @@ class _ItemCardState extends State<ItemCard> {
                       color: Color.fromARGB(255, 42, 19, 117),
                     ),
                     Text(
-                      '${widget.item.city ?? 'غير متوفر'} حي ${widget.item.district ?? 'غير متوفر'}',
+                      '${widget.item.city} حي ${widget.item.district}',
                       style: const TextStyle(
                         fontWeight: FontWeight.normal,
                         fontSize: 16.0,
@@ -169,6 +130,8 @@ class _ItemCardState extends State<ItemCard> {
                   ],
                 ),
                 const SizedBox(height: 20.0),
+
+                //price
                 Text(
                   '$priceFormatted ريال سعودي',
                   style: const TextStyle(
@@ -183,6 +146,19 @@ class _ItemCardState extends State<ItemCard> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildIconText(IconData icon, int count) {
+    return Row(
+      children: [
+        const SizedBox(width: 4.0),
+        Text(
+          count.toString(),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
+        ),
+        Icon(icon, size: 19.0, color: const Color.fromARGB(255, 42, 19, 117)),
+      ],
     );
   }
 }

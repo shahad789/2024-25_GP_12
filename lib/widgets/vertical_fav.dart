@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_unnecessary_containers
 
-import 'package:daar/models/item_model.dart';
+import 'package:daar/screens/detailsafterclick.dart';
+import 'package:daar/screens/fav.dart';
 import 'package:daar/widgets/house_fav.dart';
 import 'package:flutter/material.dart';
 
@@ -8,7 +9,7 @@ class VerticalRecomendList extends StatelessWidget {
   const VerticalRecomendList(this.title, this.items, {super.key});
 
   final String? title;
-  final List<Item> items;
+  final List<Property> items;
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +37,15 @@ class VerticalRecomendList extends StatelessWidget {
             itemBuilder: (context, index) {
               return Column(
                 children: [
-                  ItemCard(
-                    items[index],
-                    () {},
-                    (item) {
-                      //logic
-                    },
-                  ),
+                  ItemCard(items[index], () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailsBro(items[index].id),
+                        //give details id of specific item to show
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 12.0),
                 ],
               );
