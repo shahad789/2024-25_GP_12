@@ -56,8 +56,11 @@ class _FavPageState extends State<FavPage> {
           .where(FieldPath.documentId, whereIn: favoritePropertyIds)
           .get();
 
-      final properties =
-          snapshot.docs.map((doc) => Property.fromFirestore(doc)).toList();
+      final properties = snapshot.docs
+          .map((doc) => Property.fromFirestore(doc))
+          .where((property) =>
+              property.status == "متوفر") // Filter only available properties
+          .toList();
 
       setState(() {
         favoriteProperties = properties;

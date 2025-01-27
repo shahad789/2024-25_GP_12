@@ -94,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .map((doc) => Property.fromFirestore(doc))
           .toList();
     } else {
-      // Fetch recommended properties based on history
+      // Analyze user history
       List<String> propertyIds =
           viewedProperties.map((p) => p['propertyId'] as String).toList();
 
@@ -127,38 +127,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Fetching properties with priority order
         Future<void> fetchAndAdd(Query query) async {
-          final snapshot = await query.get();
-          for (var doc in snapshot.docs) {
-            if (!addedPropertyIds.contains(doc.id)) {
-              Property property = Property.fromFirestore(doc);
-              fetchedProperties.add(property);
-              addedPropertyIds.add(doc.id);
-              if (fetchedProperties.length >= 5) return;
-            }
-          }
+          final snapshot =
+              await query.orderBy('Date_list', descending: true).get();
+          List<Property> properties = snapshot.docs
+              .map((doc) => Property.fromFirestore(doc))
+              .where((property) => !addedPropertyIds.contains(property.id))
+              .toList();
+
+          int needed = 5 - fetchedProperties.length;
+          properties = properties.take(needed).toList();
+
+          fetchedProperties.addAll(properties);
+          addedPropertyIds.addAll(properties.map((p) => p.id));
+
+          if (fetchedProperties.length >= 5) return;
         }
 
         await fetchAndAdd(FirebaseFirestore.instance
             .collection('Property')
             .where('status', isEqualTo: 'متوفر')
             .where('category', isEqualTo: mostViewedType)
-            .where('city', isEqualTo: mostViewedCity)
-            .limit(5));
+            .where('city', isEqualTo: mostViewedCity));
 
         if (fetchedProperties.length < 5) {
           await fetchAndAdd(FirebaseFirestore.instance
               .collection('Property')
               .where('status', isEqualTo: 'متوفر')
-              .where('city', isEqualTo: mostViewedCity)
-              .limit(5));
+              .where('city', isEqualTo: mostViewedCity));
         }
 
         if (fetchedProperties.length < 5) {
           await fetchAndAdd(FirebaseFirestore.instance
               .collection('Property')
               .where('status', isEqualTo: 'متوفر')
-              .where('category', isEqualTo: mostViewedType)
-              .limit(5));
+              .where('category', isEqualTo: mostViewedType));
+        }
+
+        // If no matches, fallback to most recent properties
+        if (fetchedProperties.length < 5) {
+          await fetchAndAdd(FirebaseFirestore.instance
+              .collection('Property')
+              .where('status', isEqualTo: 'متوفر')
+              .orderBy('Date_list', descending: true));
         }
       }
     }
@@ -171,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final allPropertiesSnapshot = await FirebaseFirestore.instance
         .collection('Property')
         .where('status', isEqualTo: 'متوفر')
+        .orderBy('Date_list', descending: true)
         .get();
 
     setState(() {

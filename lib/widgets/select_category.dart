@@ -36,7 +36,7 @@ class _SelectCategoryState extends State<SelectCategory> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          categoryButton("شقه"),
+          categoryButton("شقة"),
           categoryButton("دور"),
           categoryButton("فيلا"),
         ],
@@ -85,7 +85,7 @@ class _SelectCategoryState extends State<SelectCategory> {
         return Icons.house;
       case 'دور':
         return Icons.home_work;
-      case 'شقه':
+      case 'شقة':
         return Icons.apartment;
       default:
         return Icons.help_outline;
