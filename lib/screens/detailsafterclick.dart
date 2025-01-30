@@ -499,22 +499,6 @@ class _DetailsBroState extends State<DetailsBro> {
 
                           const SizedBox(
                               height:
-                                  8), // Add space between title and phone number
-
-                          // Display the phone number with the same font size as the price
-                          Text(
-                            'رقم الهاتف: $phoneNumber',
-                            style: const TextStyle(
-                              fontSize: 22, // Same font size as price
-                              color: Color.fromARGB(255, 13, 6, 37),
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign:
-                                TextAlign.center, // Align text in the center
-                          ),
-
-                          const SizedBox(
-                              height:
                                   8), // Add some space between text and icon
 
                           // WhatsApp Icon Button with larger size

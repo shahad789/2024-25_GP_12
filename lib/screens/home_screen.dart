@@ -6,7 +6,6 @@ import 'package:daar/screens/predict.dart';
 import 'package:daar/screens/profile_page.dart';
 import 'package:daar/usprovider/UserProvider.dart';
 import 'package:daar/widgets/recomend_list.dart';
-import 'package:daar/widgets/search_field.dart';
 import 'package:daar/widgets/vertical_recomend_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -341,6 +340,8 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              const SizedBox(height: 20.0),
+
               Text(
                 'مرحباً، ${userProvider.userName ?? 'مستخدم'}',
                 style: TextStyle(
@@ -351,42 +352,42 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 textAlign: TextAlign.right,
               ),
-              const SizedBox(height: 10.0),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Stack(
-                    clipBehavior: Clip.none, //for red dot
-                    children: [
-                      IconButton(
-                        onPressed: _navigateToFilters,
-                        icon: const Icon(
-                          Icons.filter_alt,
-                          color: Color(0xFF180A44),
-                        ),
-                      ),
-                      // show red dot if did
-                      if (filtersApplied)
-                        Positioned(
-                          top: 9,
-                          right: 9,
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: const Color.fromARGB(
-                                  255, 243, 95, 95), // اللون الأحمر للنقطة
-                              shape: BoxShape.circle, // جعلها دائرة
-                            ),
+              Transform.translate(
+                offset: Offset(0, -44), // القيمة السالبة تعني رفع العنصر لأعلى
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none, //for red dot
+                      children: [
+                        IconButton(
+                          onPressed: _navigateToFilters,
+                          icon: const Icon(
+                            Icons.filter_alt,
+                            color: Color(0xFF180A44),
                           ),
                         ),
-                    ],
-                  ),
-                  const Expanded(child: SearchField()), // حقل البحث
-                ],
+                        // show red dot if did
+                        if (filtersApplied)
+                          Positioned(
+                            top: 9,
+                            right: 9,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(
+                                    255, 243, 95, 95), // اللون الأحمر للنقطة
+                                shape: BoxShape.circle, // جعلها دائرة
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20.0),
               if (!filtersApplied)
                 recomendList("التوصيات", recommendedProperties),
 

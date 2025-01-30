@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:daar/usprovider/UserProvider.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class NotifPage extends StatefulWidget {
   const NotifPage({Key? key}) : super(key: key);
@@ -12,40 +11,99 @@ class NotifPage extends StatefulWidget {
 }
 
 class _NotifPageState extends State<NotifPage> {
-  List<QueryDocumentSnapshot> properties = [];
+  List<Map<String, String>> notifications = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotifications();
+  }
+
+  Future<void> _fetchNotifications() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userDocId = userProvider.userDocId;
+
+    if (userDocId == null) {
+      setState(() => isLoading = false);
+      return;
+    }
+
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('user')
+          .doc(userDocId)
+          .get();
+      final favoritePropertyIds =
+          List<String>.from(userDoc.data()?['favorites'] ?? []);
+
+      if (favoritePropertyIds.isNotEmpty) {
+        final favoriteSnapshot = await FirebaseFirestore.instance
+            .collection('Property')
+            .where(FieldPath.documentId, whereIn: favoritePropertyIds)
+            .get();
+
+        for (var doc in favoriteSnapshot.docs) {
+          final propertyData = doc.data() as Map<String, dynamic>;
+          if (propertyData['status'] == 'غير متوفر') {
+            notifications.add({
+              'title': 'عقارك المفضل غير متوفر الآن',
+              'message':
+                  'العقار في ${propertyData['city'] ?? 'المدينة غير محددة'}، حي ${propertyData['District'] ?? 'غير محدد'} لم يعد متاحًا.',
+            });
+            await FirebaseFirestore.instance
+                .collection('Favorites')
+                .doc(userDocId)
+                .collection('userFavorites')
+                .doc(doc.id)
+                .delete();
+          }
+        }
+      }
+
+      final propertySnapshot = await FirebaseFirestore.instance
+          .collection('Property')
+          .where('user',
+              isEqualTo: FirebaseFirestore.instance.doc('user/$userDocId'))
+          .get();
+
+      for (var doc in propertySnapshot.docs) {
+        final propertyData = doc.data() as Map<String, dynamic>;
+        final dateListed = (propertyData['Date_list'] as Timestamp?)?.toDate();
+        if (dateListed != null) {
+          final daysListed = DateTime.now().difference(dateListed).inDays;
+          notifications.add({
+            'title': 'حدث حالة عقارك',
+            'message':
+                'تم إدراج عقارك في ${propertyData['city'] ?? 'المدينة غير محددة'}، حي ${propertyData['District'] ?? 'غير محدد'} منذ $daysListed يومًا. قم بتحديثه لجذب المشترين!',
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching notifications: $e');
+    }
+    setState(() => isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final userDocId = Provider.of<UserProvider>(context).userDocId;
-
     return WillPopScope(
-      onWillPop: () async {
-        return true;
-      },
+      onWillPop: () async => true,
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          elevation: 0.0,
           backgroundColor: const Color(0xFF180A44),
           toolbarHeight: 70.0,
           centerTitle: true,
           title: const Text(
-            'الاشعارات',
+            'الإشعارات',
             style: TextStyle(
-              fontSize: 22,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
           ),
           actions: [
             IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(
-                Icons.arrow_forward,
-                color: Colors.white,
-              ),
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_forward, color: Colors.white),
             ),
           ],
         ),
@@ -55,11 +113,7 @@ class _NotifPageState extends State<NotifPage> {
               child: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF180A44),
-                      Color(0xFF180A44),
-                    ],
-                  ),
+                      colors: [Color(0xFF180A44), Color(0xFF180A44)]),
                 ),
               ),
             ),
@@ -71,116 +125,33 @@ class _NotifPageState extends State<NotifPage> {
                 height: MediaQuery.of(context).size.height - 90.0,
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(40),
-                    topRight: Radius.circular(40),
-                  ),
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40)),
                   color: Colors.white,
                 ),
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('Property')
-                      .where('user',
-                          isEqualTo:
-                              FirebaseFirestore.instance.doc('user/$userDocId'))
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    } else if (snapshot.hasError) {
-                      print('Error fetching data: ${snapshot.error}');
-                      return const Center(
-                        child: Text('حدث خطأ أثناء تحميل البيانات.'),
-                      );
-                    } else if (!snapshot.hasData ||
-                        snapshot.data!.docs.isEmpty) {
-                      print('No notifications found for user: $userDocId');
-                      return const Center(child: Text('لا توجد إشعارات.'));
-                    } else {
-                      properties = snapshot.data!.docs;
-
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 18.0, vertical: 30.0),
-                        itemCount: properties.length,
-                        itemBuilder: (context, index) {
-                          final doc = properties[index];
-                          final propertyData =
-                              doc.data() as Map<String, dynamic>;
-
-                          final propertyDistrict =
-                              propertyData['District'] ?? 'الحي';
-                          final propertyCity =
-                              propertyData['city'] ?? 'المدينة غير محددة';
-                          final propertySize =
-                              propertyData['size'] ?? 'غير محدد';
-                          final propertyView = propertyData['view'] ?? 0;
-
-                          final dateListed = propertyData['Date_list'] != null
-                              ? (propertyData['Date_list'] as Timestamp)
-                                  .toDate()
-                              : null;
-
-                          final notifications = <Widget>[];
-
-                          // Add notification for views
-                          if (propertyView > 0) {
-                            final viewNotificationMessage =
-                                'تمت مشاهدة عقارك في $propertyCity، حي $propertyDistrict، الذي حجمه $propertySize من قبل $propertyView شخص';
-                            notifications.add(
-                              NotificationCard(
-                                title: 'مشاهدات عقارك',
-                                message: viewNotificationMessage,
-                              ),
-                            );
-                          }
-
-                          // Add notification for date
-                          if (dateListed != null) {
-                            final daysListed =
-                                DateTime.now().difference(dateListed).inDays;
-
-                            final dateNotificationMessage =
-                                'تم إدراج عقارك في $propertyCity، حي $propertyDistrict منذ $daysListed يومًا. هل لديك تحديثات للعقار مثل تعديل السعر أو التفاصيل؟ قم بتحديث إعلانك الآن لجذب المزيد من المشترين!';
-                            notifications.add(
-                              NotificationCard(
-                                title: 'حدث حاله عقارك',
-                                message: dateNotificationMessage,
-                              ),
-                            );
-                          }
-
-                          return Column(
-                            children: [
-                              for (int i = 0;
-                                  i < notifications.length;
-                                  i++) ...[
-                                notifications[i],
-                                if (i < notifications.length - 1)
-                                  const Divider(
-                                    height: 20,
-                                    color: Colors.grey,
-                                    thickness: 1.0,
-                                    indent: 16.0,
-                                    endIndent: 16.0,
-                                  ),
-                              ],
-                              if (index < properties.length - 1)
-                                const Divider(
-                                  height: 30,
-                                  color: Colors.black26,
-                                  thickness: 1.0,
-                                  indent: 10.0,
-                                  endIndent: 10.0,
-                                ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
-                ),
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : notifications.isEmpty
+                        ? const Center(child: Text('لا توجد إشعارات.'))
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 18.0, vertical: 30.0),
+                            itemCount: notifications.length,
+                            itemBuilder: (context, index) {
+                              final notification = notifications[index];
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  NotificationCard(
+                                      title: notification['title']!,
+                                      message: notification['message']!),
+                                  if (index < notifications.length - 1)
+                                    const Divider(
+                                        height: 20, color: Colors.grey),
+                                ],
+                              );
+                            },
+                          ),
               ),
             ),
           ],
@@ -203,6 +174,7 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
