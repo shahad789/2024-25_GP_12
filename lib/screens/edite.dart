@@ -74,17 +74,32 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             priceController.text = data['price'].toString();
             selectedStatus = data['status'];
 
-            // Load directions
+            // تحميل الاتجاهات
             selectedDirections.clear();
             selectedDirections.addAll(
               (data['Direction'] ?? '').split(', '),
             );
 
-            // Load images
+            // تحميل الصور (تمت إضافته كما هو بدون تعديل)
             selectedImages.clear();
             List<dynamic> imageUrls = data['images'] ?? [];
             selectedImages.addAll(imageUrls.map((url) => File(url)).toList());
           });
+
+          // تحميل الأحياء بعد تعيين المدينة
+          await loadDistricts();
+
+          // تحقق مما إذا كان الحي المسترجع موجودًا في القائمة الجديدة
+          if (neighborhoods.contains(selectedNeighborhood)) {
+            setState(() {
+              selectedNeighborhood = data['District'];
+            });
+          } else {
+            setState(() {
+              selectedNeighborhood =
+                  null; // اجعل الحي فارغًا إذا لم يكن متوفرًا
+            });
+          }
         }
       }
     } catch (e) {
@@ -146,6 +161,12 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         }
       }
 
+// إضافة صورة افتراضية إذا لم تكن هناك صور
+      if (imageUrls.isEmpty) {
+        imageUrls.add(
+          'https://firebasestorage.googleapis.com/v0/b/daar-4ee4f.appspot.com/o/noimage.png?alt=media',
+        );
+      }
       // Update Firestore document
       await FirebaseFirestore.instance
           .collection('Property')
@@ -277,8 +298,8 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 const SizedBox(height: 30),
                 _buildStreetWidthField(),
                 const SizedBox(height: 30),
-                _buildInputField(context, 'سنة  البناء', Icons.calendar_today,
-                    dateController),
+                _buildYearPickerField(context, 'سنة البناء',
+                    Icons.calendar_today, dateController),
                 const SizedBox(height: 30),
                 _buildDropdownField('المدينة', cities, (value) {
                   setState(() {
@@ -308,6 +329,8 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 ),
                 const SizedBox(height: 30),
                 _buildHelpAndPriceRow(context),
+                const SizedBox(height: 30),
+                if (showEstimation) _buildCurrencyInput(),
                 const SizedBox(height: 30),
                 _buildStatusRadioButtons(), // Add radio buttons for status
                 const SizedBox(height: 20),
@@ -949,6 +972,64 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           ),
         ),
       ],
+    );
+  }
+
+  //year
+  Widget _buildYearPickerField(BuildContext context, String label,
+      IconData icon, TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      textAlign: TextAlign.right,
+      readOnly: true, // Prevent manual input
+      onTap: () => _selectYear(context, controller), // Open year picker
+      decoration: InputDecoration(
+        label: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            const Text('*', style: TextStyle(color: Colors.red, fontSize: 14)),
+            Text(
+              label,
+              style: const TextStyle(
+                  color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        prefixIcon: Icon(icon, color: const Color(0xFF180A44)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      ),
+    );
+  }
+
+  void _selectYear(BuildContext context, TextEditingController controller) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          height: 300,
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              const Text("اختر سنة البناء",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: YearPicker(
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime.now(),
+                  initialDate: DateTime.now(),
+                  selectedDate: DateTime.now(),
+                  onChanged: (DateTime picked) {
+                    controller.text =
+                        picked.year.toString(); // Save only the year
+                    Navigator.pop(context); // Close the modal
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

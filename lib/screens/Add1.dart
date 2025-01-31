@@ -237,8 +237,8 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 const SizedBox(height: 30),
                 _buildStreetWidthField(),
                 const SizedBox(height: 30),
-                _buildInputField(context, 'سنة  البناء', Icons.calendar_today,
-                    dateController),
+                _buildYearPickerField(context, 'سنة البناء',
+                    Icons.calendar_today, dateController),
                 const SizedBox(height: 30),
                 _buildDropdownField('المدينة', cities, (value) {
                   setState(() {
@@ -918,6 +918,64 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           ),
         ),
       ],
+    );
+  }
+
+  //year
+  Widget _buildYearPickerField(BuildContext context, String label,
+      IconData icon, TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      textAlign: TextAlign.right,
+      readOnly: true, // Prevent manual input
+      onTap: () => _selectYear(context, controller), // Open year picker
+      decoration: InputDecoration(
+        label: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            const Text('*', style: TextStyle(color: Colors.red, fontSize: 14)),
+            Text(
+              label,
+              style: const TextStyle(
+                  color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        prefixIcon: Icon(icon, color: const Color(0xFF180A44)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      ),
+    );
+  }
+
+  void _selectYear(BuildContext context, TextEditingController controller) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          height: 300,
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              const Text("اختر سنة البناء",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: YearPicker(
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime.now(),
+                  initialDate: DateTime.now(),
+                  selectedDate: DateTime.now(),
+                  onChanged: (DateTime picked) {
+                    controller.text =
+                        picked.year.toString(); // Save only the year
+                    Navigator.pop(context); // Close the modal
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

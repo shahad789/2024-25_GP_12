@@ -62,7 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-//code here of rexomend
   Future<void> _fetchProperties() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final String? currentUserId = userProvider.userDocId;
@@ -78,116 +77,128 @@ class _HomeScreenState extends State<HomeScreen> {
             ? List.from(userDoc.data()?['viewedProperties'])
             : [];
 
-    Set<String> addedPropertyIds = {}; // Track unique property IDs
-    List<Property> fetchedProperties = [];
-
-    if (viewedProperties.isEmpty) {
-      final recentPropertiesSnapshot = await FirebaseFirestore.instance
-          .collection('Property')
-          .where('status', isEqualTo: 'متوفر')
-          .orderBy('Date_list', descending: true)
-          .limit(5)
-          .get();
-
-      fetchedProperties = recentPropertiesSnapshot.docs
-          .map((doc) => Property.fromFirestore(doc))
-          .toList();
-    } else {
-      // Analyze user history
-      List<String> propertyIds =
-          viewedProperties.map((p) => p['propertyId'] as String).toList();
-
-      final viewedPropertiesSnapshot = await FirebaseFirestore.instance
-          .collection('Property')
-          .where(FieldPath.documentId, whereIn: propertyIds)
-          .get();
-
-      Map<String, int> typeCounts = {};
-      Map<String, int> cityCounts = {};
-
-      for (var doc in viewedPropertiesSnapshot.docs) {
-        final data = doc.data();
-        String type = data['category'] ?? '';
-        String city = data['city'] ?? '';
-
-        int numview = viewedProperties.firstWhere(
-            (p) => p['propertyId'] == doc.id,
-            orElse: () => {'numview': 1})['numview'];
-
-        typeCounts[type] = (typeCounts[type] ?? 0) + numview;
-        cityCounts[city] = (cityCounts[city] ?? 0) + numview;
-      }
-
-      if (typeCounts.isNotEmpty && cityCounts.isNotEmpty) {
-        String mostViewedType =
-            typeCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
-        String mostViewedCity =
-            cityCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
-
-        // Fetching properties with priority order
-        Future<void> fetchAndAdd(Query query) async {
-          final snapshot =
-              await query.orderBy('Date_list', descending: true).get();
-          List<Property> properties = snapshot.docs
-              .map((doc) => Property.fromFirestore(doc))
-              .where((property) => !addedPropertyIds.contains(property.id))
-              .toList();
-
-          int needed = 5 - fetchedProperties.length;
-          properties = properties.take(needed).toList();
-
-          fetchedProperties.addAll(properties);
-          addedPropertyIds.addAll(properties.map((p) => p.id));
-
-          if (fetchedProperties.length >= 5) return;
-        }
-
-        await fetchAndAdd(FirebaseFirestore.instance
-            .collection('Property')
-            .where('status', isEqualTo: 'متوفر')
-            .where('category', isEqualTo: mostViewedType)
-            .where('city', isEqualTo: mostViewedCity));
-
-        if (fetchedProperties.length < 5) {
-          await fetchAndAdd(FirebaseFirestore.instance
-              .collection('Property')
-              .where('status', isEqualTo: 'متوفر')
-              .where('city', isEqualTo: mostViewedCity));
-        }
-
-        if (fetchedProperties.length < 5) {
-          await fetchAndAdd(FirebaseFirestore.instance
-              .collection('Property')
-              .where('status', isEqualTo: 'متوفر')
-              .where('category', isEqualTo: mostViewedType));
-        }
-
-        // If no matches, fallback to most recent properties
-        if (fetchedProperties.length < 5) {
-          await fetchAndAdd(FirebaseFirestore.instance
-              .collection('Property')
-              .where('status', isEqualTo: 'متوفر')
-              .orderBy('Date_list', descending: true));
-        }
-      }
-    }
-
-    setState(() {
-      recommendedProperties = fetchedProperties;
-    });
-
-    // Fetch all properties
+    // Fetch all properties (excluding user's own)
     final allPropertiesSnapshot = await FirebaseFirestore.instance
         .collection('Property')
         .where('status', isEqualTo: 'متوفر')
         .orderBy('Date_list', descending: true)
+        .limit(100) // Fetch extra for prioritization
         .get();
 
+    List<Property> allFetchedProperties = allPropertiesSnapshot.docs
+        .map((doc) => Property.fromFirestore(doc))
+        .where((property) =>
+            property.userId != currentUserId) // Exclude user's properties
+        .toList();
+
     setState(() {
-      allProperties = allPropertiesSnapshot.docs
-          .map((doc) => Property.fromFirestore(doc))
-          .toList();
+      allProperties = allFetchedProperties;
     });
+
+    // If no history, return the 5 most recent properties
+    if (viewedProperties.isEmpty) {
+      setState(() {
+        recommendedProperties = allFetchedProperties.take(5).toList();
+      });
+      return;
+    }
+
+    // Analyze user history
+    List<String> propertyIds =
+        viewedProperties.map((p) => p['propertyId'] as String).toList();
+
+    List<Property> viewedPropertiesList = allFetchedProperties
+        .where((property) => propertyIds.contains(property.id))
+        .toList();
+
+    Map<String, int> typeCounts = {};
+    Map<String, int> cityCounts = {};
+
+    for (var property in viewedPropertiesList) {
+      String type = property.category;
+      String city = property.city;
+
+      // Increment category count
+      typeCounts[type] = (typeCounts[type] ?? 0) + 1;
+
+      // Increment city count
+      cityCounts[city] = (cityCounts[city] ?? 0) + 1;
+    }
+
+    if (typeCounts.isNotEmpty && cityCounts.isNotEmpty) {
+      String mostViewedType =
+          typeCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+      String mostViewedCity =
+          cityCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+
+      List<Property> tempList = [];
+
+      // ✅ **1st Priority: Match BOTH category & city**
+      List<Property> matchBoth = allFetchedProperties
+          .where((property) =>
+              property.category == mostViewedType &&
+              property.city == mostViewedCity)
+          .toList();
+      matchBoth.sort((a, b) => b.Date_list.compareTo(a.Date_list));
+      tempList.addAll(matchBoth);
+
+      // If more than 5, take only the most recent 5
+      if (tempList.length > 5) {
+        tempList = tempList.take(5).toList();
+      }
+
+      // ✅ **2nd Priority: Match only the city (if needed)**
+      if (tempList.length < 5) {
+        List<Property> matchCity = allFetchedProperties
+            .where((property) =>
+                property.city == mostViewedCity &&
+                property.category != mostViewedType)
+            .toList();
+        matchCity.sort((a, b) => b.Date_list.compareTo(a.Date_list));
+
+        tempList.addAll(matchCity);
+
+        if (tempList.length > 5) {
+          tempList = tempList.take(5).toList();
+        }
+      }
+
+      // ✅ **3rd Priority: Match only the category (if needed)**
+      if (tempList.length < 5) {
+        List<Property> matchCategory = allFetchedProperties
+            .where((property) =>
+                property.category == mostViewedType &&
+                property.city != mostViewedCity)
+            .toList();
+        matchCategory.sort((a, b) => b.Date_list.compareTo(a.Date_list));
+
+        tempList.addAll(matchCategory);
+
+        if (tempList.length > 5) {
+          tempList = tempList.take(5).toList();
+        }
+      }
+
+      // ✅ **4th Priority: Show most recent (if needed)**
+      if (tempList.length < 5) {
+        List<Property> recentProperties = allFetchedProperties
+            .where((property) =>
+                property.category != mostViewedType &&
+                property.city != mostViewedCity)
+            .toList();
+        recentProperties.sort((a, b) => b.Date_list.compareTo(a.Date_list));
+
+        tempList.addAll(recentProperties);
+
+        if (tempList.length > 5) {
+          tempList = tempList.take(5).toList();
+        }
+      }
+
+      setState(() {
+        recommendedProperties = tempList;
+      });
+    }
   }
 
   //for filter method show properties based on user requiermenets
@@ -452,6 +463,7 @@ class Property {
   final int numoflivin;
   final int numofbed;
   final Timestamp Date_list;
+  final String userId;
 
   Property({
     required this.id,
@@ -465,6 +477,7 @@ class Property {
     required this.numoflivin,
     required this.numofbed,
     required this.Date_list,
+    required this.userId,
   });
 
   factory Property.fromFirestore(QueryDocumentSnapshot doc) {
@@ -483,6 +496,7 @@ class Property {
       numoflivin: data['numOfLivin'] ?? 0,
       numofbed: data['numOfBed'] ?? 0,
       Date_list: data['Date_list'] ?? Timestamp.now(),
+      userId: (data['user'] as DocumentReference?)?.id ?? '',
     );
   }
 }
