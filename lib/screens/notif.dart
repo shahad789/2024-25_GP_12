@@ -72,11 +72,14 @@ class _NotifPageState extends State<NotifPage> {
         final dateListed = (propertyData['Date_list'] as Timestamp?)?.toDate();
         if (dateListed != null) {
           final daysListed = DateTime.now().difference(dateListed).inDays;
-          notifications.add({
-            'title': 'حدث حالة عقارك',
-            'message':
-                'تم إدراج عقارك في ${propertyData['city'] ?? 'المدينة غير محددة'}، حي ${propertyData['District'] ?? 'غير محدد'} منذ $daysListed يومًا. قم بتحديثه لجذب المشترين!',
-          });
+          if (daysListed >= 30) {
+            // Added condition here
+            notifications.add({
+              'title': 'حدث حالة عقارك',
+              'message':
+                  'تم إدراج عقارك في ${propertyData['city'] ?? 'المدينة غير محددة'}، حي ${propertyData['District'] ?? 'غير محدد'} منذ $daysListed يومًا. قم بتحديثه لجذب المشترين!',
+            });
+          }
         }
       }
     } catch (e) {
