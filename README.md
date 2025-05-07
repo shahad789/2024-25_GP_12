@@ -23,20 +23,24 @@ Web hosting: Github<br>
 UX/UI: Figma<br>
 Web-Based environment: JupyterLab</p>
 <H4>3.Lanunching instruction</H4>
-<p>
-1. Clone the Repository:  
-   - Clone the project repository to your local machine. 
-   - Open cmd
-   - Git clone "https://github.com/shahad789/2024-25_GP_12.git" (Make sure you have Git installed!)
-   - cd 2024-25_GP_12
 
-2. Get packages:  
-   - In the Flutter project, open 'new terminal'.  
-   - Run 'flutter pub get'  
-
-3. Run the Application:  
-   - Choose an emulator or connect a physical device.  
-   - Run the project:  
-     - Option 1: Click "Run > Start Debugging" in your IDE.  
-     - Option 2: Use the terminal command: `flutter run`.  
-</p>
+<ol>
+  <li>
+    <strong>Clone the Repository:</strong><br>
+    - Open <code>cmd</code> or your terminal.<br>
+    - Run: <code>git clone https://github.com/shahad789/2024-25_GP_12.git</code> (Make sure you have Git installed!)<br>
+    - Navigate into the project folder: <code>cd 2024-25_GP_12</code><br>
+  </li>
+  <li>
+    <strong>Get Packages:</strong><br>
+    - Inside the Flutter project, open a new terminal.<br>
+    - Run: <code>flutter pub get</code><br>
+  </li>
+  <li>
+    <strong>Run the Application:</strong><br>
+    - Start an emulator or connect a physical device.<br>
+    - To run the app:<br>
+      - Option 1: Click <em>"Run > Start Debugging"</em> in your IDE.<br>
+      - Option 2: Use the terminal: <code>flutter run</code><br>
+  </li>
+</ol>
