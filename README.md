@@ -21,7 +21,8 @@ Database: Firebase<br>
 Project Managment: Jira<br>
 Web hosting: Github<br>
 UX/UI: Figma<br>
-Web-Based environment: JupyterLab</p>
+Web-Based environment: JupyterLab<br>
+Cloud Services (AWS): Amazon Web Services</p>
 <H4>3.Lanunching instruction</H4>
 
 <ol>
