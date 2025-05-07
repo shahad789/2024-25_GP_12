@@ -25,7 +25,10 @@ Web-Based environment: JupyterLab</p>
 <H4>3.Lanunching instruction</H4>
 <p>
 1. Clone the Repository:  
-   Clone the project repository to your local machine.  
+   - Clone the project repository to your local machine. 
+   - Open cmd
+   - Git clone "https://github.com/shahad789/2024-25_GP_12.git" (Make sure you have Git installed!)
+   - cd 2024-25_GP_12
 
 2. Get packages:  
    - In the Flutter project, open 'new terminal'.  
